@@ -5,31 +5,21 @@
     <meta charset="UTF-8">
     <title>Gemini Site Gen</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <!-- update the version number as needed -->
-        <script defer src="/__/firebase/11.3.1/firebase-app-compat.js"></script>
-        <!-- include only the Firebase features as you need -->
-        <script defer src="/__/firebase/11.3.1/firebase-auth-compat.js"></script>
-        <script defer src="/__/firebase/11.3.1/firebase-database-compat.js"></script>
-        <script defer src="/__/firebase/11.3.1/firebase-firestore-compat.js"></script>
-        <script defer src="/__/firebase/11.3.1/firebase-functions-compat.js"></script>
-        <script defer src="/__/firebase/11.3.1/firebase-messaging-compat.js"></script>
-        <script defer src="/__/firebase/11.3.1/firebase-storage-compat.js"></script>
-        <script defer src="/__/firebase/11.3.1/firebase-analytics-compat.js"></script>
-        <script defer src="/__/firebase/11.3.1/firebase-remote-config-compat.js"></script>
-        <script defer src="/__/firebase/11.3.1/firebase-performance-compat.js"></script>
-        <!-- 
-          initialize the SDK after all desired features are loaded, set useEmulator to false
-          to avoid connecting the SDK to running emulators.
-        -->
-        <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-    <!-- Bootstrap CSS -->
+    <script defer src="/__/firebase/11.3.1/firebase-app-compat.js"></script>
+    <script defer src="/__/firebase/11.3.1/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/11.3.1/firebase-database-compat.js"></script>
+    <script defer src="/__/firebase/11.3.1/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/11.3.1/firebase-functions-compat.js"></script>
+    <script defer src="/__/firebase/11.3.1/firebase-messaging-compat.js"></script>
+    <script defer src="/__/firebase/11.3.1/firebase-storage-compat.js"></script>
+    <script defer src="/__/firebase/11.3.1/firebase-analytics-compat.js"></script>
+    <script defer src="/__/firebase/11.3.1/firebase-remote-config-compat.js"></script>
+    <script defer src="/__/firebase/11.3.1/firebase-performance-compat.js"></script>
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Prism.js CSS for Syntax Highlighting -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
-    <!-- Prism.js Dark Theme -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet"
         id="prism-theme" disabled />
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <script src="setup.js" defer></script>
     <style>
@@ -41,17 +31,16 @@
             --text-dark: #212529;
             --primary: #007bff;
             --primary-hover: #0056b3;
+            --sidebar-width: 320px; /* Increased Sidebar Width */
         }
 
         /* Dark Mode */
         body.dark-mode {
             background: linear-gradient(135deg, #2c2c2c, #4f4f4f);
             color: var(--text-light);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
 
+        body.dark-mode .sidebar,
         body.dark-mode .dropdown-menu,
         body.dark-mode #codeDisplay {
             background-color: var(--bg-dark);
@@ -287,19 +276,108 @@
             height: 100%;
             margin: 0;
             padding: 0;
+            overflow: hidden; /* Prevent scrollbars on body */
         }
 
         body {
             display: flex;
-            flex-direction: column;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            height: 100vh;
+            overflow-y: auto; /* Enable scroll for the sidebar itself */
+            padding: 20px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1001;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-header h4 {
+            margin: 0;
+        }
+
+        .sidebar-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        .sidebar-section {
+            /* margin-bottom: 20px; */
+        }
+
+        .sidebar-section-header {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-section-header h6 {
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-section-toggle-icon {
+            font-size: 1em;
+            transition: transform 0.3s;
+        }
+
+        .sidebar-section-collapsed .sidebar-section-toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .sidebar-section-content {
+            padding-left: 15px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+            padding-right: 10px; /* Added padding to content */
+            overflow-y: auto; /* Enable scroll within section content */
+        }
+        .sidebar-section-content.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            padding-right: 0; /* Remove padding when collapsed */
+            overflow-y: hidden; /* Hide vertical scroll when collapsed */
         }
 
         /* Dynamic Content Container */
         #dynamicContent {
-            flex: 1 1 auto;
-            padding: 90px 20px 20px 20px;
-            overflow: hidden;
+            flex: 1;
+            padding: 20px;
+            padding-top: 70px; /* Adjusted for fixed header button */
+            overflow: auto; /* Enable scroll if content overflows */
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s ease-in-out;
         }
+
+        #dynamicContent.sidebar-hidden {
+            margin-left: 0;
+        }
+
 
         /* Iframe Styling */
         #dynamicContent iframe {
@@ -309,20 +387,19 @@
             border-radius: 5px;
         }
 
-        /* Navbar Adjustments */
-        .navbar {
-            z-index: 1030;
-        }
 
         /* Action Buttons Adjustments */
         .action-buttons {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column; /* Changed to column layout */
             gap: 10px;
+            max-height: 400px; /* Limit height of action buttons */
+            overflow-y: auto; /* Enable scroll if action buttons overflow */
         }
 
         .action-buttons .btn {
-            flex: 1 1 auto;
+            flex: 0 0 auto; /* Prevent buttons from stretching */
+            width: 100%; /* Make buttons full width of container */
         }
 
         /* Overlay Loader */
@@ -372,11 +449,36 @@
             content: "";
             animation: dots 1s steps(4, end) infinite;
         }
+
+        /* Sidebar Toggle Button on top left */
+        #sidebarToggleTopLeft {
+            position: fixed;
+            top: 15px;
+            left: 15px + var(--sidebar-width); /* Position next to sidebar initially */
+            z-index: 1002; /* Above sidebar and content */
+            background: var(--bg-light);
+            color: var(--text-dark);
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            transition: left 0.3s ease-in-out, background-color 0.3s, color 0.3s;
+        }
+
+        #sidebarToggleTopLeft.sidebar-hidden {
+            left: 15px; /* Move to the left edge when sidebar is hidden */
+        }
+
+        body.dark-mode #sidebarToggleTopLeft {
+            background: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+
     </style>
 </head>
 
 <body>
-    <!-- Toast Notification -->
     <div class="toast-container">
         <div class="toast align-items-center text-bg-dark border-0" id="toast" role="alert" aria-live="assertive"
             aria-atomic="true">
@@ -390,7 +492,6 @@
         </div>
     </div>
 
-    <!-- Overlay Loader -->
     <div id="overlayLoader" class="overlay-loader">
         <div class="loader-container">
             <div class="spinner-border text-primary" role="status" aria-label="Loading">
@@ -402,139 +503,123 @@
         </div>
     </div>
 
-    <!-- Top Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Gemini Site Gen</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
-                aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <!-- Describe Website Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="inputMenuBtn" role="button"
-                            data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                            Describe Website
-                        </a>
-                        <ul class="dropdown-menu p-4 custom-dropdown" aria-labelledby="inputMenuBtn" data-bs-auto-close="outside">
-                            <!-- Toggle for Custom Code -->
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="customCodeToggle"
-                                    aria-label="Toggle Custom Code">
-                                <label class="form-check-label" for="customCodeToggle">Use Custom Code</label>
-                            </div>
-                            <!-- Custom Code Textarea -->
-                            <div class="mb-3" id="customCodeContainer" style="display: none;">
-                                <textarea class="form-control" id="customCode" placeholder="Enter your existing code here..."
-                                    aria-label="Custom Code Input" rows="5"></textarea>
-                            </div>
-                            <!-- Suggestions Section -->
-                            <div class="suggestions-section">
-                                <div class="suggestion-header" id="suggestionsToggle">
-                                    <h5>Suggestions</h5>
-                                    <span class="suggestion-toggle-icon">&#9660;</span>
-                                </div>
-                                <div id="suggestionsContainer">
-                                    <div id="suggestionsList" class="d-flex flex-wrap">
-                                        <!-- Suggestions will be dynamically inserted here -->
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Selected Parameters -->
-                            <div class="selected-parameters" id="selectedParameters">
-                                <!-- Selected parameters will appear here -->
-                            </div>
-                            <!-- Description Textarea -->
-                            <div class="mb-3">
-                                <textarea class="form-control" id="codeInput" placeholder="Describe your website..."
-                                    aria-label="Website Description" rows="3"></textarea>
-                            </div>
-                            <!-- Image Upload Section -->
-                            <div class="mb-3">
-                                <label class="form-label">Upload Images (optional):</label>
-                                <div class="image-upload-section" id="imageUploadSection">
-                                    <p>Click or drag and drop images here, or paste from clipboard</p>
-                                    <input type="file" id="imageInput" accept="image/png, image/jpeg, image/webp, image/heic, image/heif" multiple
-                                        style="display: none;">
-                                </div>
-                                <div class="image-preview" id="imagePreview"></div>
-                            </div>
-                            <!-- Action Buttons -->
-                            <div class="action-buttons d-grid gap-2">
-                                <button class="btn btn-success" id="submitCode"><i class="bi bi-arrow-right-circle"></i> Generate Website</button>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-warning" id="undoCode" disabled><i
-                                            class="bi bi-arrow-counterclockwise"></i> Undo</button>
-                                    <button class="btn btn-info" id="redoCode" disabled><i
-                                            class="bi bi-arrow-clockwise"></i> Redo</button>
-                                    <button class="btn btn-secondary" id="regenerateCode" disabled><i
-                                            class="bi bi-arrow-repeat"></i> Regenerate</button>
-                                    <button class="btn btn-primary" id="enhanceCode" disabled><i class="bi bi-magic"></i> Enhance</button>
-                                </div>
-                                <button class="btn btn-danger" id="clearCode"><i class="bi bi-trash"></i> Clear</button>
-                                <button class="btn btn-secondary" id="exportCode"><i class="bi bi-box-arrow-down"></i>
-                                    Export</button>
-                            </div>
-                        </ul>
-                    </li>
-                    <!-- View Generated Code Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="codeMenuBtn" role="button"
-                            data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                            View Generated Code
-                        </a>
-                        <ul class="dropdown-menu p-4 custom-dropdown" aria-labelledby="codeMenuBtn" data-bs-auto-close="outside">
-                            <div id="codeDisplayContainer" class="position-relative">
-                                <pre id="codeDisplay" class="language-html"><code class="language-html"></code></pre>
-                                <button class="copy-btn" id="copyCodeBtn" aria-label="Copy Generated Code">Copy Code</button>
-                                <div class="tooltip-custom" id="copyTooltip">Copied!</div>
-                            </div>
-                        </ul>
-                    </li>
-                    <!-- Settings Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="settingsMenuBtn" role="button"
-                            data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                            Settings
-                        </a>
-                        <ul class="dropdown-menu p-4 custom-dropdown" aria-labelledby="settingsMenuBtn" data-bs-auto-close="outside">
-                            <!-- Dark Mode Toggle -->
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="darkModeToggle"
-                                    aria-label="Toggle Dark Mode">
-                                <label class="form-check-label" for="darkModeToggle">Dark Mode</label>
-                            </div>
-                            <!-- AI Model Selector -->
-                            <div class="mb-3">
-                                <label for="modelSelect" class="form-label">Select AI Model:</label>
-                                <select class="form-select" id="modelSelect" aria-label="Select AI Model">
-                                    <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-                                    <option value="gemini-2.0-flash-lite-preview-02-05">Gemini 2.0 Flash-Lite Preview</option>
-                                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                                </select>
-                            </div>
-                            <!-- API Key Input -->
-                            <div class="mb-3">
-                                <label for="apiKeyInput" class="form-label">Enter API Key:</label>
-                                <input type="text" class="form-control" id="apiKeyInput"
-                                    placeholder="Enter your API key here..." aria-label="API Key Input">
-                                <button class="btn btn-success mt-2" id="saveApiKeyBtn">Save API Key</button>
-                            </div>
-                        </ul>
-                    </li>
-                </ul>
+    <button id="sidebarToggleTopLeft" class="sidebar-toggle-btn">☰</button>
+
+
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h4>&nbsp;</h4> <!-- Added blank space gap -->
+            <h4>Gemini Site Gen</h4>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-section-header" id="viewCodeHeader">
+                <h6>View Generated Code</h6>
+                <span class="sidebar-section-toggle-icon">&#9660;</span>
+            </div>
+            <div id="viewCodeContent" class="sidebar-section-content collapsed">
+                <div id="codeDisplayContainer" class="position-relative">
+                    <pre id="codeDisplay" class="language-html"><code class="language-html"></code></pre>
+                    <button class="copy-btn" id="copyCodeBtn" aria-label="Copy Generated Code">Copy Code</button>
+                    <div class="tooltip-custom" id="copyTooltip">Copied!</div>
+                </div>
             </div>
         </div>
-    </nav>
 
-    <!-- Dynamic Content Display -->
-    <div id="dynamicContent">
-        <!-- Content will be injected here -->
-    </div>
+        <div class="sidebar-section">
+            <div class="sidebar-section-header" id="settingsHeader">
+                <h6>Settings</h6>
+                <span class="sidebar-section-toggle-icon">&#9660;</span>
+            </div>
+            <div id="settingsContent" class="sidebar-section-content collapsed">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="darkModeToggle"
+                        aria-label="Toggle Dark Mode">
+                    <label class="form-check-label" for="darkModeToggle">Dark Mode</label>
+                </div>
+                <div class="mb-3">
+                    <label for="modelSelect" class="form-label">Select AI Model:</label>
+                    <select class="form-select" id="modelSelect" aria-label="Select AI Model">
+                        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                        <option value="gemini-2.0-flash-lite-preview-02-05">Gemini 2.0 Flash-Lite Preview</option>
+                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="apiKeyInput" class="form-label">Enter API Key:</label>
+                    <input type="text" class="form-control" id="apiKeyInput"
+                        placeholder="Enter your API key here..." aria-label="API Key Input">
+                    <button class="btn btn-success mt-2" id="saveApiKeyBtn">Save API Key</button>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-section-header" id="describeWebsiteHeader">
+                <h6>Describe Website</h6>
+                <span class="sidebar-section-toggle-icon">&#9660;</span>
+            </div>
+            <div id="describeWebsiteContent" class="sidebar-section-content">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="customCodeToggle"
+                        aria-label="Toggle Custom Code">
+                    <label class="form-check-label" for="customCodeToggle">Use Custom Code</label>
+                </div>
+                <div class="mb-3" id="customCodeContainer" style="display: none;">
+                    <textarea class="form-control" id="customCode" placeholder="Enter your existing code here..."
+                        aria-label="Custom Code Input" rows="5"></textarea>
+                </div>
+                <div class="suggestions-section">
+                    <div class="suggestion-header" id="suggestionsToggle">
+                        <h5>Suggestions</h5>
+                        <span class="suggestion-toggle-icon">&#9660;</span>
+                    </div>
+                    <div id="suggestionsContainer">
+                        <div id="suggestionsList" class="d-flex flex-wrap">
+                            </div>
+                    </div>
+                </div>
+                <div class="selected-parameters" id="selectedParameters">
+                    </div>
+                <div class="mb-3">
+                    <textarea class="form-control" id="codeInput" placeholder="Describe your website..."
+                        aria-label="Website Description" rows="3" style="overflow-y: scroll;"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Upload Images (optional):</label>
+                    <div class="image-upload-section" id="imageUploadSection">
+                        <p>Click or drag and drop images here, or paste from clipboard</p>
+                        <input type="file" id="imageInput"
+                            accept="image/png, image/jpeg, image/webp, image/heic, image/heif" multiple
+                            style="display: none;">
+                    </div>
+                    <div class="image-preview" id="imagePreview"></div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-success w-100 mb-2" id="submitCode"><i class="bi bi-arrow-right-circle"></i> Generate
+                        Website</button>
+                    <div class="">
+                        <button class="btn btn-warning w-100 mb-2" id="undoCode" disabled><i
+                                class="bi bi-arrow-counterclockwise"></i> Undo</button>
+                        <button class="btn btn-info w-100 mb-2" id="redoCode" disabled><i class="bi bi-arrow-clockwise"></i>
+                            Redo</button>
+                        <button class="btn btn-secondary w-100 mb-2" id="regenerateCode" disabled><i
+                                class="bi bi-arrow-repeat"></i> Regenerate</button>
+                        <button class="btn btn-primary w-100 mb-2" id="enhanceCode" disabled><i class="bi bi-magic"></i>
+                            Enhance</button>
+                    </div>
+                    <button class="btn btn-danger w-100" id="clearCode"><i class="bi bi-trash"></i> Clear</button>
+                    <button class="btn btn-secondary w-100" id="exportCode"><i class="bi bi-box-arrow-down"></i>
+                        Export</button>
+                </div>
+            </div>
+        </div>
 
-    <!-- Import the Google Generative AI library -->
+
+    </aside>
+
+    <main id="dynamicContent" class="sidebar-hidden">
+        </main>
+
+
     <script type="importmap">
     {
       "imports": {
@@ -542,278 +627,333 @@
       }
     }
     </script>
-    <!-- Bootstrap JS (with Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Prism.js for Syntax Highlighting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-html.min.js"></script>
-    <script type="module">
-        import { GoogleGenerativeAI } from "@google/generative-ai";
+    <script src="setup.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.getElementById('sidebar');
+            const dynamicContent = document.getElementById('dynamicContent');
+            const sidebarToggleTopLeft = document.getElementById('sidebarToggleTopLeft');
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize elements
-            const elements = {
-                submitButton: document.getElementById('submitCode'),
-                codeInput: document.getElementById('codeInput'),
-                clearButton: document.getElementById('clearCode'),
-                undoButton: document.getElementById('undoCode'),
-                redoButton: document.getElementById('redoCode'),
-                regenerateButton: document.getElementById('regenerateCode'),
-                enhanceButton: document.getElementById('enhanceCode'),
-                exportButton: document.getElementById('exportCode'),
-                loader: document.getElementById('loader'),
-                codeDisplay: document.querySelector('#codeDisplay code'),
-                contentDiv: document.getElementById('dynamicContent'),
-                customCodeToggle: document.getElementById('customCodeToggle'),
-                customCodeContainer: document.getElementById('customCodeContainer'),
-                customCodeInput: document.getElementById('customCode'),
-                copyCodeBtn: document.getElementById('copyCodeBtn'),
-                copyTooltip: document.getElementById('copyTooltip'),
-                darkModeToggle: document.getElementById('darkModeToggle'),
-                prismTheme: document.getElementById('prism-theme'),
-                modelSelect: document.getElementById('modelSelect'),
-                apiKeyInput: document.getElementById('apiKeyInput'),
-                saveApiKeyBtn: document.getElementById('saveApiKeyBtn'),
-                toast: new bootstrap.Toast(document.getElementById('toast')),
-                toastBody: document.getElementById('toastBody'),
-                imageUploadSection: document.getElementById('imageUploadSection'),
-                imageInput: document.getElementById('imageInput'),
-                imagePreview: document.getElementById('imagePreview'),
-                suggestionsList: document.getElementById('suggestionsList'),
-                selectedParameters: document.getElementById('selectedParameters'),
-                suggestionsToggle: document.getElementById('suggestionsToggle'),
-                suggestionsContainer: document.getElementById('suggestionsContainer'),
-                suggestionToggleIcon: document.querySelector('.suggestion-toggle-icon'),
-                overlayLoader: document.getElementById('overlayLoader'),
-                loadingText: document.getElementById('loadingText')
-            };
+            // Sidebar Toggle Button (Top Left)
+            sidebarToggleTopLeft.addEventListener('click', function () {
+                sidebar.classList.toggle('hidden');
+                dynamicContent.classList.toggle('sidebar-hidden');
+                sidebarToggleTopLeft.classList.toggle('sidebar-hidden');
+            });
 
-            // Initialize state
-            let API_KEY = localStorage.getItem('apiKey') || "";
-            let genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
-            let history = JSON.parse(localStorage.getItem('history')) || [];
-            let currentHistoryIndex = parseInt(localStorage.getItem('currentHistoryIndex')) || -1;
-            let isUsingCustomCode = false;
-            let selectedModel = localStorage.getItem('selectedModel') || 'gemini-1.5-flash-8b';
-            let uploadedImages = JSON.parse(localStorage.getItem('uploadedImages')) || [];
-            let selectedParameters = JSON.parse(localStorage.getItem('selectedParameters')) || [];
+            // Initially collapse sidebar
+            sidebar.classList.add('hidden');
+            dynamicContent.classList.add('sidebar-hidden');
+            sidebarToggleTopLeft.classList.add('sidebar-hidden');
 
-            elements.modelSelect.value = selectedModel;
 
-            // Master List of Suggestions
-            const masterSuggestions = [
-                "bootstrap", "neomorphism", "glassmorphism", "beautiful", "modern", "ugly", "dynamic", "1980's", "retro",
-                "early 2000's", "tailwind CSS", "bulma", "dropdowns", "rounded corners", "animations", "gradients",
-                "flat design", "minimalistic", "maximalist", "dark mode", "light mode", "pastel colors", "bold typography",
-                "serif fonts", "sans-serif fonts", "single-page", "multipage", "parallax scrolling", "responsive design",
-                "adaptive design", "flexbox", "grid layout", "sticky headers", "scroll indicators", "hover effects",
-                "transitions", "microinteractions", "neumorphism", "brutalism", "skeuomorphism", "split screen",
-                "sidebars", "modular design", "hero images", "sticky footers", "card-based layout", "material design",
-                "masonry grid", "infinite scroll", "pagination", "ghost buttons", "iconography", "z-index magic",
-                "sticky navbar", "mega menus", "fixed background", "drop shadows", "blur effects", "frosted glass",
-                "angled dividers", "floating elements", "vertical navigation", "hamburger menu", "typography overlays",
-                "call-to-action buttons", "slider galleries", "collapsible sections", "tabbed content",
-                "hover-to-reveal", "image carousels", "scroll-triggered animations", "custom cursors", "SVG backgrounds",
-                "CSS variables", "custom forms", "modal popups", "sticky sidebars", "content buckets", "drag-and-drop",
-                "video backgrounds", "full-screen overlays", "accordion menus", "timeline design", "interactive infographics",
-                "line art", "blob shapes", "hexagonal grids", "3D icons", "pastel gradients", "glitch effects",
-                "holographic design", "responsive tables", "mobile-first design", "placeholder animations",
-                "breadcrumb navigation", "badges", "pill buttons", "color-coded labels", "sticky breadcrumbs"
-            ];
+            // Section Collapsible Logic
+            document.querySelectorAll('.sidebar-section-header').forEach(header => {
+                header.addEventListener('click', function () {
+                    const section = this.parentElement;
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('.sidebar-section-toggle-icon');
 
-            // State Variables for Suggestions
-            let availableSuggestions = [...masterSuggestions];
-            let displayedSuggestions = [];
-
-            // Initialize Suggestions
-            function initializeSuggestions() {
-                availableSuggestions = masterSuggestions.filter(item => !selectedParameters.includes(item));
-                displayedSuggestions = [];
-                for (let i = 0; i < 25 && availableSuggestions.length > 0; i++) {
-                    const randomIndex = Math.floor(Math.random() * availableSuggestions.length);
-                    displayedSuggestions.push(availableSuggestions.splice(randomIndex, 1)[0]);
-                }
-                renderSuggestions();
-            }
-
-            // Render Suggestions List
-            function renderSuggestions() {
-                elements.suggestionsList.innerHTML = '';
-                displayedSuggestions.forEach(item => {
-                    const div = document.createElement('div');
-                    div.classList.add('suggestion-item');
-                    const button = document.createElement('button');
-                    button.type = 'button';
-                    button.textContent = item;
-                    button.addEventListener('click', () => addParameter(item));
-                    div.appendChild(button);
-                    elements.suggestionsList.appendChild(div);
+                    content.classList.toggle('collapsed');
+                    section.classList.toggle('sidebar-section-collapsed');
+                    if (content.classList.contains('collapsed')) {
+                        content.style.maxHeight = null; // Reset max-height for animation
+                        setTimeout(() => { // Delay to allow animation
+                            content.style.maxHeight = '0';
+                        }, 10);
+                        icon.style.transform = 'rotate(-90deg)';
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                        icon.style.transform = 'rotate(0deg)';
+                    }
                 });
-            }
+            });
 
-            // Add Parameter to Selected Parameters
-            function addParameter(item) {
-                if (!selectedParameters.includes(item)) {
-                    selectedParameters.push(item);
-                    localStorage.setItem('selectedParameters', JSON.stringify(selectedParameters));
-                    renderSelectedParameters();
-                    showToast(`Added "${item}" to parameters.`);
-                    removeSuggestionFromDisplayed(item);
-                    replenishSuggestions();
+            // Initially collapse all sections except Describe Website
+            document.querySelectorAll('.sidebar-section-content').forEach(content => {
+                if (content.id !== 'describeWebsiteContent') { // Keep Describe Website open
+                    content.classList.add('collapsed');
+                    content.style.maxHeight = '0';
+                    const header = content.previousElementSibling;
+                    const icon = header.querySelector('.sidebar-section-toggle-icon');
+                    header.parentElement.classList.add('sidebar-section-collapsed');
+                    icon.style.transform = 'rotate(-90deg)';
+                } else {
+                    content.style.maxHeight = content.scrollHeight + 'px'; // Set initial height for Describe Website
                 }
-            }
+            });
+        });
+    </script>
+<script type="module">
+    import { GoogleGenerativeAI } from "@google/generative-ai";
 
-            // Remove Parameter from Selected Parameters
-            function removeParameter(item) {
-                selectedParameters = selectedParameters.filter(param => param !== item);
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize elements
+        const elements = {
+            submitButton: document.getElementById('submitCode'),
+            codeInput: document.getElementById('codeInput'),
+            clearButton: document.getElementById('clearCode'),
+            undoButton: document.getElementById('undoCode'),
+            redoButton: document.getElementById('redoCode'),
+            regenerateButton: document.getElementById('regenerateCode'),
+            enhanceButton: document.getElementById('enhanceCode'),
+            exportButton: document.getElementById('exportCode'),
+            loader: document.getElementById('loader'),
+            codeDisplay: document.querySelector('#codeDisplay code'),
+            contentDiv: document.getElementById('dynamicContent'),
+            customCodeToggle: document.getElementById('customCodeToggle'),
+            customCodeContainer: document.getElementById('customCodeContainer'),
+            customCodeInput: document.getElementById('customCode'),
+            copyCodeBtn: document.getElementById('copyCodeBtn'),
+            copyTooltip: document.getElementById('copyTooltip'),
+            darkModeToggle: document.getElementById('darkModeToggle'),
+            prismTheme: document.getElementById('prism-theme'),
+            modelSelect: document.getElementById('modelSelect'),
+            apiKeyInput: document.getElementById('apiKeyInput'),
+            saveApiKeyBtn: document.getElementById('saveApiKeyBtn'),
+            toast: new bootstrap.Toast(document.getElementById('toast')),
+            toastBody: document.getElementById('toastBody'),
+            imageUploadSection: document.getElementById('imageUploadSection'),
+            imageInput: document.getElementById('imageInput'),
+            imagePreview: document.getElementById('imagePreview'),
+            suggestionsList: document.getElementById('suggestionsList'),
+            selectedParameters: document.getElementById('selectedParameters'),
+            suggestionsToggle: document.getElementById('suggestionsToggle'),
+            suggestionsContainer: document.getElementById('suggestionsContainer'),
+            suggestionToggleIcon: document.querySelector('.suggestion-toggle-icon'),
+            overlayLoader: document.getElementById('overlayLoader'),
+            loadingText: document.getElementById('loadingText')
+        };
+
+        // Initialize state
+        let API_KEY = localStorage.getItem('apiKey') || "";
+        let genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
+        let history = JSON.parse(localStorage.getItem('history')) || [];
+        let currentHistoryIndex = parseInt(localStorage.getItem('currentHistoryIndex')) || -1;
+        let isUsingCustomCode = false;
+        let selectedModel = localStorage.getItem('selectedModel') || 'gemini-1.5-flash-8b';
+        let uploadedImages = JSON.parse(localStorage.getItem('uploadedImages')) || [];
+        let selectedParameters = JSON.parse(localStorage.getItem('selectedParameters')) || [];
+
+        elements.modelSelect.value = selectedModel;
+
+        // Master List of Suggestions
+        const masterSuggestions = [
+            "bootstrap", "neomorphism", "glassmorphism", "beautiful", "modern", "ugly", "dynamic", "1980's", "retro",
+            "early 2000's", "tailwind CSS", "bulma", "dropdowns", "rounded corners", "animations", "gradients",
+            "flat design", "minimalistic", "maximalist", "dark mode", "light mode", "pastel colors", "bold typography",
+            "serif fonts", "sans-serif fonts", "single-page", "multipage", "parallax scrolling", "responsive design",
+            "adaptive design", "flexbox", "grid layout", "sticky headers", "scroll indicators", "hover effects",
+            "transitions", "microinteractions", "neumorphism", "brutalism", "skeuomorphism", "split screen",
+            "sidebars", "modular design", "hero images", "sticky footers", "card-based layout", "material design",
+            "masonry grid", "infinite scroll", "pagination", "ghost buttons", "iconography", "z-index magic",
+            "sticky navbar", "mega menus", "fixed background", "drop shadows", "blur effects", "frosted glass",
+            "angled dividers", "floating elements", "vertical navigation", "hamburger menu", "typography overlays",
+            "call-to-action buttons", "slider galleries", "collapsible sections", "tabbed content",
+            "hover-to-reveal", "image carousels", "scroll-triggered animations", "custom cursors", "SVG backgrounds",
+            "CSS variables", "custom forms", "modal popups", "sticky sidebars", "content buckets", "drag-and-drop",
+            "video backgrounds", "full-screen overlays", "accordion menus", "timeline design", "interactive infographics",
+            "line art", "blob shapes", "hexagonal grids", "3D icons", "pastel gradients", "glitch effects",
+            "holographic design", "responsive tables", "mobile-first design", "placeholder animations",
+            "breadcrumb navigation", "badges", "pill buttons", "color-coded labels", "sticky breadcrumbs"
+        ];
+
+        // State Variables for Suggestions
+        let availableSuggestions = [...masterSuggestions];
+        let displayedSuggestions = [];
+
+        // Initialize Suggestions
+        function initializeSuggestions() {
+            availableSuggestions = masterSuggestions.filter(item => !selectedParameters.includes(item));
+            displayedSuggestions = [];
+            for (let i = 0; i < 10 && availableSuggestions.length > 0; i++) {
+                const randomIndex = Math.floor(Math.random() * availableSuggestions.length);
+                displayedSuggestions.push(availableSuggestions.splice(randomIndex, 1)[0]);
+            }
+            renderSuggestions();
+        }
+
+        // Render Suggestions List
+        function renderSuggestions() {
+            elements.suggestionsList.innerHTML = '';
+            displayedSuggestions.forEach(item => {
+                const div = document.createElement('div');
+                div.classList.add('suggestion-item');
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = item;
+                button.addEventListener('click', () => addParameter(item));
+                div.appendChild(button);
+                elements.suggestionsList.appendChild(div);
+            });
+        }
+
+        // Add Parameter to Selected Parameters
+        function addParameter(item) {
+            if (!selectedParameters.includes(item)) {
+                selectedParameters.push(item);
                 localStorage.setItem('selectedParameters', JSON.stringify(selectedParameters));
                 renderSelectedParameters();
-                showToast(`Removed "${item}" from parameters.`);
-                if (!availableSuggestions.includes(item)) {
-                    availableSuggestions.push(item);
-                }
+                showToast(`Added "${item}" to parameters.`);
+                removeSuggestionFromDisplayed(item);
                 replenishSuggestions();
             }
+        }
 
-            // Render Selected Parameters
-            function renderSelectedParameters() {
-                elements.selectedParameters.innerHTML = '';
-                selectedParameters.forEach(item => {
-                    const badge = document.createElement('span');
-                    badge.classList.add('parameter-badge');
-                    badge.textContent = item;
-                    const removeBtn = document.createElement('button');
-                    removeBtn.classList.add('remove-parameter');
-                    removeBtn.setAttribute('aria-label', `Remove ${item}`);
-                    removeBtn.innerHTML = '&times;';
-                    removeBtn.addEventListener('click', () => removeParameter(item));
-                    badge.appendChild(removeBtn);
-                    elements.selectedParameters.appendChild(badge);
-                });
+        // Remove Parameter from Selected Parameters
+        function removeParameter(item) {
+            selectedParameters = selectedParameters.filter(param => param !== item);
+            localStorage.setItem('selectedParameters', JSON.stringify(selectedParameters));
+            renderSelectedParameters();
+            showToast(`Removed "${item}" from parameters.`);
+            if (!availableSuggestions.includes(item)) {
+                availableSuggestions.push(item);
             }
+            replenishSuggestions();
+        }
 
-            // Remove Suggestion from Displayed Suggestions
-            function removeSuggestionFromDisplayed(item) {
-                const index = displayedSuggestions.indexOf(item);
-                if (index !== -1) {
-                    displayedSuggestions.splice(index, 1);
-                    renderSuggestions();
-                }
-            }
+        // Render Selected Parameters
+        function renderSelectedParameters() {
+            elements.selectedParameters.innerHTML = '';
+            selectedParameters.forEach(item => {
+                const badge = document.createElement('span');
+                badge.classList.add('parameter-badge');
+                badge.textContent = item;
+                const removeBtn = document.createElement('button');
+                removeBtn.classList.add('remove-parameter');
+                removeBtn.setAttribute('aria-label', `Remove ${item}`);
+                removeBtn.innerHTML = '&times;';
+                removeBtn.addEventListener('click', () => removeParameter(item));
+                badge.appendChild(removeBtn);
+                elements.selectedParameters.appendChild(badge);
+            });
+        }
 
-            // Replenish Suggestions to Maintain 25
-            function replenishSuggestions() {
-                while (displayedSuggestions.length < 25 && availableSuggestions.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * availableSuggestions.length);
-                    const nextItem = availableSuggestions.splice(randomIndex, 1)[0];
-                    displayedSuggestions.push(nextItem);
-                }
+        // Remove Suggestion from Displayed Suggestions
+        function removeSuggestionFromDisplayed(item) {
+            const index = displayedSuggestions.indexOf(item);
+            if (index !== -1) {
+                displayedSuggestions.splice(index, 1);
                 renderSuggestions();
             }
+        }
 
-            // Toggle Suggestions Visibility
-            let suggestionsCollapsed = false;
-            elements.suggestionsToggle.addEventListener('click', () => {
-                suggestionsCollapsed = !suggestionsCollapsed;
-                if (suggestionsCollapsed) {
-                    elements.suggestionsContainer.style.display = 'none';
-                    elements.suggestionToggleIcon.style.transform = 'rotate(-90deg)';
-                } else {
-                    elements.suggestionsContainer.style.display = 'block';
-                    elements.suggestionToggleIcon.style.transform = 'rotate(0deg)';
-                }
-            });
-
-            // Initialize settings
-            const initializeSettings = () => {
-                const darkMode = JSON.parse(localStorage.getItem('darkMode'));
-                if (darkMode) {
-                    document.body.classList.add('dark-mode');
-                    elements.darkModeToggle.checked = true;
-                    elements.prismTheme.disabled = false;
-                    showToast('Dark mode enabled');
-                }
-                if (history.length > 0 && currentHistoryIndex >= 0) {
-                    displayHistory();
-                }
-                if (uploadedImages.length > 0) {
-                    displayUploadedImages();
-                }
-                if (API_KEY) {
-                    elements.apiKeyInput.value = API_KEY;
-                }
-                initializeSuggestions();
-                renderSelectedParameters();
-                updateUndoRedoButtons();
-            };
-
-            // Construct Prompt
-            function constructPrompt(userInput, includePreviousCode = true, previousCode = "") {
-                let promptSuffix = '';
-                if (selectedParameters.length > 0) {
-                    const parametersText = selectedParameters.join(', ');
-                    promptSuffix = ` You must use these parameters in the website creation: ${parametersText}.`;
-                }
-                let prompt = userInput + promptSuffix;
-                if (includePreviousCode && previousCode) {
-                    prompt += ` Previous code: "${previousCode}"`;
-                }
-                return prompt;
+        // Replenish Suggestions to Maintain 25
+        function replenishSuggestions() {
+            while (displayedSuggestions.length < 10 && availableSuggestions.length > 0) {
+                const randomIndex = Math.floor(Math.random() * availableSuggestions.length);
+                const nextItem = availableSuggestions.splice(randomIndex, 1)[0];
+                displayedSuggestions.push(nextItem);
             }
+            renderSuggestions();
+        }
 
-            // Event Listeners
-            elements.customCodeToggle.addEventListener('change', () => {
-                isUsingCustomCode = elements.customCodeToggle.checked;
-                elements.customCodeContainer.style.display = isUsingCustomCode ? 'block' : 'none';
-                elements.customCodeToggle.setAttribute('aria-checked', isUsingCustomCode);
-                if (isUsingCustomCode) {
-                    history = [];
-                    currentHistoryIndex = -1;
-                    localStorage.setItem('history', JSON.stringify(history));
-                    localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
-                    elements.codeDisplay.textContent = '';
-                    elements.contentDiv.innerHTML = '';
-                    elements.codeInput.value = "";
-                    elements.customCodeInput.value = "";
-                    showToast('Using custom code');
-                } else {
-                    showToast('Using generated previous codes');
-                    displayHistory();
-                }
-                updateUndoRedoButtons();
-            });
+        // Toggle Suggestions Visibility
+        let suggestionsCollapsed = false;
+        elements.suggestionsToggle.addEventListener('click', () => {
+            suggestionsCollapsed = !suggestionsCollapsed;
+            if (suggestionsCollapsed) {
+                elements.suggestionsContainer.style.display = 'none';
+                elements.suggestionToggleIcon.style.transform = 'rotate(-90deg)';
+            } else {
+                elements.suggestionsContainer.style.display = 'block';
+                elements.suggestionToggleIcon.style.transform = 'rotate(0deg)';
+            }
+        });
 
-            elements.darkModeToggle.addEventListener('change', () => {
-                document.body.classList.toggle('dark-mode');
-                elements.prismTheme.disabled = !document.body.classList.contains('dark-mode');
-                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-                showToast(document.body.classList.contains('dark-mode') ? 'Dark mode enabled' : 'Light mode enabled');
-            });
+        // Initialize settings
+        const initializeSettings = () => {
+            const darkMode = JSON.parse(localStorage.getItem('darkMode'));
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+                elements.darkModeToggle.checked = true;
+                elements.prismTheme.disabled = false;
+                showToast('Dark mode enabled');
+            }
+            if (history.length > 0 && currentHistoryIndex >= 0) {
+                displayHistory();
+            }
+            if (uploadedImages.length > 0) {
+                displayUploadedImages();
+            }
+            if (API_KEY) {
+                elements.apiKeyInput.value = API_KEY;
+            }
+            initializeSuggestions();
+            renderSelectedParameters();
+            updateUndoRedoButtons();
+        };
 
-            // When the user types in the description, change the submit button text if a site already exists.
-            elements.codeInput.addEventListener('input', () => {
-                if (!isUsingCustomCode && history.length > 0 && currentHistoryIndex >= 0 && elements.codeInput.value.trim().length > 0) {
-                    elements.submitButton.innerHTML = '<i class="bi bi-arrow-right-circle"></i> Generate With Changes';
-                } else {
-                    elements.submitButton.innerHTML = '<i class="bi bi-arrow-right-circle"></i> Generate Website';
-                }
-            });
+        // Construct Prompt
+        function constructPrompt(userInput, includePreviousCode = true, previousCode = "") {
+            let promptSuffix = '';
+            if (selectedParameters.length > 0) {
+                const parametersText = selectedParameters.join(', ');
+                promptSuffix = ` You must use these parameters in the website creation: ${parametersText}.`;
+            }
+            let prompt = userInput + promptSuffix;
+            if (includePreviousCode && previousCode) {
+                prompt += ` Previous code: "${previousCode}"`;
+            }
+            return prompt;
+        }
 
-            elements.submitButton.addEventListener('click', async () => {
-                if (!genAI) {
-                    alert("Please enter and save your API key in the Settings menu before generating code.");
-                    return;
-                }
-                let userInput = elements.codeInput.value.trim();
-                if (!userInput) {
-                    alert("Please describe your website.");
-                    return;
-                }
-                let fullPrompt;
-                let prompt;
-                if (!isUsingCustomCode && history.length > 0 && currentHistoryIndex >= 0) {
-                    fullPrompt = constructPrompt(userInput, true, history[currentHistoryIndex].code);
-                    prompt = `Generate a single HTML codeblock containing the HTML structure, CSS styling, and JavaScript functionality that improves upon the existing website. Use the previous code as context and incorporate the following changes: "${fullPrompt}". Prioritize clean, well-structured, and visually appealing code that is all in one file. If you need to show images on the site, use Pexels API. https://api.pexels.com/v1/search. The api key is 563492ad6f917000010000019b983f3b62fe43daa92e746d4553dd35. ALWAYS INCLUDE THE ENTIRE CODE IN YOUR RESPONSE. DO NOT LEAVE ANY OF THE PREVIOUS CODE OUT. Do not leave any placeholders. Make it interactive and awesome. I am an expert HTML, JavaScript, and CSS developer with a keen eye for modern, aesthetically pleasing design.
+        // Event Listeners
+        elements.customCodeToggle.addEventListener('change', () => {
+            isUsingCustomCode = elements.customCodeToggle.checked;
+            elements.customCodeContainer.style.display = isUsingCustomCode ? 'block' : 'none';
+            elements.customCodeToggle.setAttribute('aria-checked', isUsingCustomCode);
+            if (isUsingCustomCode) {
+                history = [];
+                currentHistoryIndex = -1;
+                localStorage.setItem('history', JSON.stringify(history));
+                localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
+                elements.codeDisplay.textContent = '';
+                elements.contentDiv.innerHTML = '';
+                elements.codeInput.value = "";
+                elements.customCodeInput.value = "";
+                showToast('Using custom code');
+            } else {
+                showToast('Using generated previous codes');
+                displayHistory();
+            }
+            updateUndoRedoButtons();
+        });
+
+        elements.darkModeToggle.addEventListener('change', () => {
+            document.body.classList.toggle('dark-mode');
+            elements.prismTheme.disabled = !document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            showToast(document.body.classList.contains('dark-mode') ? 'Dark mode enabled' : 'Light mode enabled');
+        });
+
+        // When the user types in the description, change the submit button text if a site already exists.
+        elements.codeInput.addEventListener('input', () => {
+            if (!isUsingCustomCode && history.length > 0 && currentHistoryIndex >= 0 && elements.codeInput.value.trim().length > 0) {
+                elements.submitButton.innerHTML = '<i class="bi bi-arrow-right-circle"></i> Generate With Changes';
+            } else {
+                elements.submitButton.innerHTML = '<i class="bi bi-arrow-right-circle"></i> Generate Website';
+            }
+        });
+
+        elements.submitButton.addEventListener('click', async () => {
+            if (!genAI) {
+                alert("Please enter and save your API key in the Settings menu before generating code.");
+                return;
+            }
+            let userInput = elements.codeInput.value.trim();
+            if (!userInput) {
+                alert("Please describe your website.");
+                return;
+            }
+            let fullPrompt;
+            let prompt;
+            if (!isUsingCustomCode && history.length > 0 && currentHistoryIndex >= 0) {
+                fullPrompt = constructPrompt(userInput, true, history[currentHistoryIndex].code);
+                prompt = `Generate a single HTML codeblock containing the HTML structure, CSS styling, and JavaScript functionality that improves upon the existing website. Use the previous code as context and incorporate the following changes: "${fullPrompt}". Prioritize clean, well-structured, and visually appealing code that is all in one file. If you need to show images on the site, use Pexels API. https://api.pexels.com/v1/search. The api key is 563492ad6f917000010000019b983f3b62fe43daa92e746d4553dd35. ALWAYS INCLUDE THE ENTIRE CODE IN YOUR RESPONSE. DO NOT LEAVE ANY OF THE PREVIOUS CODE OUT. Do not leave any placeholders. Make it interactive and awesome. I am an expert HTML, JavaScript, and CSS developer with a keen eye for modern, aesthetically pleasing design.
 Tasks include creating stunning, contemporary, and highly functional websites based on user requests using pure HTML, JavaScript, and CSS. All code will be rendered directly in the browser.
 
 General Guidelines:
@@ -874,9 +1014,9 @@ Follow accessibility guidelines.
 Here is a pexels guidelines to use:
 If your website needs images, the Pexels API is a great resource.  Instead of a user search, you can directly request images for specific objects. For example, if your site is about office supplies and you have placeholders for "pen," "paper," and "stapler," you can use the Pexels API to fill those placeholders.  You'll need an API key (like 563492ad6f917000010000019b983f3b62fe43daa92e746d4553dd35 - though you'll need your own).  To get an image of a pen, you'd make a request to the Pexels API's search endpoint, like this: https://api.pexels.com/v1/search?query=pen&page=1.  Replace "pen" with "paper" or "stapler" for other images.  The page=1 part specifies the first page of results.  The API request also needs an Authorization header with your API key.  The response will be a JSON object containing image information.  You can then extract the image URL (e.g., from response.photos[0].src.large) and use it in your website's <img> tag. This approach lets you programmatically populate your site with relevant images without needing a search box.
 `;
-                } else {
-                    fullPrompt = constructPrompt(userInput, false);
-                    prompt = `Generate a single HTML codeblock containing the HTML structure, CSS styling, and JavaScript functionality based on the following description: "${fullPrompt}". Prioritize clean, well-structured, and visually appealing code that is all in one file. If you need to show images on the site, use Pexels API. https://api.pexels.com/v1/search. The api key is 563492ad6f917000010000019b983f3b62fe43daa92e746d4553dd35. ALWAYS INCLUDE THE ENTIRE CODE IN YOUR RESPONSE. DO NOT LEAVE ANY OF THE PREVIOUS CODE OUT. Do not leave any placeholders. Make it interactive and awesome. I am an expert HTML, JavaScript, and CSS developer with a keen eye for modern, aesthetically pleasing design.
+            } else {
+                fullPrompt = constructPrompt(userInput, false);
+                prompt = `Generate a single HTML codeblock containing the HTML structure, CSS styling, and JavaScript functionality based on the following description: "${fullPrompt}". Prioritize clean, well-structured, and visually appealing code that is all in one file. If you need to show images on the site, use Pexels API. https://api.pexels.com/v1/search. The api key is 563492ad6f917000010000019b983f3b62fe43daa92e746d4553dd35. ALWAYS INCLUDE THE ENTIRE CODE IN YOUR RESPONSE. DO NOT LEAVE ANY OF THE PREVIOUS CODE OUT. Do not leave any placeholders. Make it interactive and awesome. I am an expert HTML, JavaScript, and CSS developer with a keen eye for modern, aesthetically pleasing design.
 Tasks include creating stunning, contemporary, and highly functional websites based on user requests using pure HTML, JavaScript, and CSS. All code will be rendered directly in the browser.
 
 General Guidelines:
@@ -937,496 +1077,496 @@ Follow accessibility guidelines
 Here is a pexels guidelines to use:
 If your website needs images, the Pexels API is a great resource.  Instead of a user search, you can directly request images for specific objects. For example, if your site is about office supplies and you have placeholders for "pen," "paper," and "stapler," you can use the Pexels API to fill those placeholders.  You'll need an API key (like 563492ad6f917000010000019b983f3b62fe43daa92e746d4553dd35 - though you'll need your own).  To get an image of a pen, you'd make a request to the Pexels API's search endpoint, like this: https://api.pexels.com/v1/search?query=pen&page=1.  Replace "pen" with "paper" or "stapler" for other images.  The page=1 part specifies the first page of results.  The API request also needs an Authorization header with your API key.  The response will be a JSON object containing image information.  You can then extract the image URL (e.g., from response.photos[0].src.large) and use it in your website's <img> tag. This approach lets you programmatically populate your site with relevant images without needing a search box.
 `;
-                }
+            }
 
-                // Convert uploaded images to base64
-                let imageParts = [];
-                if (uploadedImages.length > 0) {
-                    try {
-                        for (let image of uploadedImages) {
-                            const base64Data = await fileToBase64(image.file);
-                            imageParts.push({
-                                inlineData: {
-                                    data: base64Data,
-                                    mimeType: image.mimeType
-                                }
-                            });
-                        }
-                    } catch (error) {
-                        console.error("Error processing images:", error);
-                        alert("There was an error processing the images. Please check the console for details.");
-                        return;
-                    }
-                }
-
-                console.log(`Prompt sent to Gemini:\n${prompt}\nModel: ${selectedModel}`);
-
+            // Convert uploaded images to base64
+            let imageParts = [];
+            if (uploadedImages.length > 0) {
                 try {
-                    elements.submitButton.disabled = true;
-                    elements.overlayLoader.style.display = 'flex';
-                    const model = genAI.getGenerativeModel({ model: selectedModel });
-                    let contentArray = [prompt];
-                    imageParts.forEach(image => {
-                        contentArray.push(image);
-                    });
-
-                    const result = await model.generateContent(contentArray);
-                    let generatedCode = await (await result.response).text();
-                    generatedCode = processGeneratedCode(generatedCode);
-
-                    if (isUsingCustomCode) {
-                        history = [];
-                        currentHistoryIndex = -1;
-                        localStorage.setItem('history', JSON.stringify(history));
-                        localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
-                        elements.customCodeInput.value = generatedCode;
-                        elements.codeDisplay.textContent = generatedCode;
-                        Prism.highlightElement(elements.codeDisplay);
-                        const iframe = document.createElement('iframe');
-                        iframe.srcdoc = generatedCode;
-                        iframe.title = 'Generated Website Preview';
-                        elements.contentDiv.innerHTML = '';
-                        elements.contentDiv.appendChild(iframe);
-                        showToast("Website generated successfully with custom code!");
-                    } else {
-                        const newEntry = {
-                            userInput: userInput,
-                            code: generatedCode,
-                            fullPrompt: fullPrompt
-                        };
-                        history = history.slice(0, currentHistoryIndex + 1);
-                        history.push(newEntry);
-                        currentHistoryIndex++;
-                        localStorage.setItem('history', JSON.stringify(history));
-                        localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
-                        displayHistory();
-                        updateUndoRedoButtons();
-                        showToast("Website generated successfully!");
-                    }
-
-                    if (history.length > 0 && !isUsingCustomCode) {
-                        elements.regenerateButton.disabled = false;
-                        elements.enhanceButton.disabled = false;
+                    for (let image of uploadedImages) {
+                        const base64Data = await fileToBase64(image.file);
+                        imageParts.push({
+                            inlineData: {
+                                data: base64Data,
+                                mimeType: image.mimeType
+                            }
+                        });
                     }
                 } catch (error) {
-                    console.error("Error generating code:", error);
-                    alert("There was an error generating the code. Please check the console for details.");
-                } finally {
-                    elements.overlayLoader.style.display = 'none';
-                    elements.submitButton.disabled = false;
+                    console.error("Error processing images:", error);
+                    alert("There was an error processing the images. Please check the console for details.");
+                    return;
                 }
-            });
+            }
 
-            elements.clearButton.addEventListener('click', () => {
-                if (confirm("Are you sure you want to clear all generated content?")) {
-                    elements.codeInput.value = "";
-                    elements.contentDiv.innerHTML = "";
-                    elements.codeDisplay.textContent = "";
-                    Prism.highlightElement(elements.codeDisplay);
-                    if (isUsingCustomCode) elements.customCodeInput.value = "";
+            console.log(`Prompt sent to Gemini:\n${prompt}\nModel: ${selectedModel}`);
+
+            try {
+                elements.submitButton.disabled = true;
+                elements.overlayLoader.style.display = 'flex';
+                const model = genAI.getGenerativeModel({ model: selectedModel });
+                let contentArray = [prompt];
+                imageParts.forEach(image => {
+                    contentArray.push(image);
+                });
+
+                const result = await model.generateContent(contentArray);
+                let generatedCode = await (await result.response).text();
+                generatedCode = processGeneratedCode(generatedCode);
+
+                if (isUsingCustomCode) {
                     history = [];
                     currentHistoryIndex = -1;
-                    uploadedImages = [];
-                    selectedParameters = [];
-                    localStorage.removeItem('history');
-                    localStorage.removeItem('currentHistoryIndex');
-                    localStorage.removeItem('uploadedImages');
-                    localStorage.removeItem('selectedParameters');
-                    elements.imagePreview.innerHTML = '';
-                    initializeSuggestions();
-                    renderSelectedParameters();
-                    updateUndoRedoButtons();
-                    elements.regenerateButton.disabled = true;
-                    elements.enhanceButton.disabled = true;
-                    showToast("All content cleared.");
-                }
-            });
-
-            elements.undoButton.addEventListener('click', () => {
-                if (currentHistoryIndex > 0) {
-                    currentHistoryIndex--;
-                    localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
-                    displayHistory();
-                    updateUndoRedoButtons();
-                    showToast("Undo action performed.");
-                }
-            });
-
-            elements.redoButton.addEventListener('click', () => {
-                if (currentHistoryIndex < history.length - 1) {
-                    currentHistoryIndex++;
-                    localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
-                    displayHistory();
-                    updateUndoRedoButtons();
-                    showToast("Redo action performed.");
-                }
-            });
-
-            elements.regenerateButton.addEventListener('click', async () => {
-                if (currentHistoryIndex === -1 || history.length === 0) {
-                    alert("No previous generation to regenerate.");
-                    return;
-                }
-                const currentEntry = history[currentHistoryIndex];
-                const userInput = currentEntry.userInput;
-                const fullPrompt = constructPrompt(userInput, false);
-                try {
-                    elements.regenerateButton.disabled = true;
-                    elements.overlayLoader.style.display = 'flex';
-                    const model = genAI.getGenerativeModel({ model: selectedModel });
-                    let imageParts = [];
-                    if (uploadedImages.length > 0) {
-                        for (let image of uploadedImages) {
-                            const base64Data = await fileToBase64(image.file);
-                            imageParts.push({
-                                inlineData: {
-                                    data: base64Data,
-                                    mimeType: image.mimeType
-                                }
-                            });
-                        }
-                    }
-                    const prompt = `Generate a single HTML codeblock containing the HTML structure, CSS styling, and JavaScript functionality based on the following description. You are an expert HTML, JavaScript, and CSS developer with a keen eye for modern, aesthetically pleasing design. Your task is to create a stunning, contemporary, and highly functional website based on the user's request using pure HTML, JavaScript, and CSS. This code will be rendered directly in the browser. General guidelines: - Create clean, modern interfaces using vanilla JavaScript and CSS - Use HTML5 semantic elements for better structure - Implement CSS3 features for animations and styling - Utilize modern JavaScript (ES6+) features - Create responsive designs using CSS media queries - You can use CDN-hosted libraries like: * jQuery * Bootstrap * Chart.js * Three.js * D3.js - For icons, use Unicode symbols or create simple SVG icons - Use CSS animations and transitions for smooth effects - Implement proper event handling with JavaScript - Create mock data instead of making API calls - Ensure cross-browser compatibility - Focus on performance and smooth animations Focus on creating a visually striking and user-friendly interface that aligns with current web design trends. Pay special attention to: - Typography: Use web-safe fonts or Google Fonts via CDN - Color: Implement a cohesive color scheme that complements the content - Layout: Design an intuitive and balanced layout using Flexbox/Grid - Animations: Add subtle CSS transitions and keyframe animations - Consistency: Maintain a consistent design language throughout Remember to only return code wrapped in HTML code blocks. The code should work directly in a browser without any build steps. Remember not add any description, just return the code only .Prioritize clean, well-structured, and visually appealing code that is all in one file. If you need to show images on the site, use Pexels API. https://api.pexels.com/v1/search. The api key is 563492ad6f917000010000019b983f3b62fe43daa92e746d4553dd35. ALWAYS INCLUDE THE ENTIRE CODE IN YOUR RESPONSE. DO NOT LEAVE ANY OF THE PREVIOUS CODE OUT. Do not leave any placeholders. Make it interactive and awesome: "${fullPrompt}". Rewrite the code again and, this time, give me the entire code instead of snippets. Do not give me any placeholders. If the user provides an image or a screenshot of a layout or a website, then make sure to try to emulate the style, fonts, and placements as closely as possible. Don't copy the wording though. Use your own words. I am an expert HTML, JavaScript, and CSS developer with a keen eye for modern, aesthetically pleasing design.
-                    `;
-                    console.log(`Prompt sent to Gemini:\n${prompt}\nModel: ${selectedModel}`);
-                    const contentArray = [prompt];
-                    imageParts.forEach(image => {
-                        contentArray.push(image);
-                    });
-                    const result = await model.generateContent(contentArray);
-                    let regeneratedCode = await (await result.response).text();
-                    regeneratedCode = processGeneratedCode(regeneratedCode);
-                    const newEntry = {
-                        userInput: userInput,
-                        code: regeneratedCode,
-                        fullPrompt: fullPrompt
-                    };
-                    history = history.slice(0, currentHistoryIndex + 1);
-                    history.push(newEntry);
-                    currentHistoryIndex++;
                     localStorage.setItem('history', JSON.stringify(history));
                     localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
-                    displayHistory();
-                    updateUndoRedoButtons();
-                    showToast("Website regenerated successfully!");
-                } catch (error) {
-                    console.error("Error regenerating code:", error);
-                    alert("There was an error regenerating the code. Please check the console for details.");
-                } finally {
-                    elements.overlayLoader.style.display = 'none';
-                    elements.regenerateButton.disabled = false;
-                }
-            });
-
-            elements.enhanceButton.addEventListener('click', async () => {
-                if (currentHistoryIndex === -1 || history.length === 0) {
-                    alert("No previous generation to enhance.");
-                    return;
-                }
-                const currentEntry = history[currentHistoryIndex];
-                const userInput = currentEntry.userInput;
-                const previousCode = currentEntry.code;
-                const fullPrompt = currentEntry.fullPrompt;
-                const enhanceInstruction = "Make this way better and enhance it from a design and functionality perspective. Make it have the same original intention, but now it will be awesome and mega enhanced.";
-                const prompt = `${enhanceInstruction} The original description was: "${fullPrompt}". The code to improve is: "${previousCode}". Generate a single HTML codeblock containing the improved HTML structure, CSS styling, and JavaScript functionality based on the description and code provided. Prioritize clean, well-structured, and visually appealing code that is all in one file. If you need to show images on the site, use Pexels API. https://api.pexels.com/v1/search. The api key is 563492ad6f917000010000019b983f3b62fe43daa92e746d4553dd35. ALWAYS INCLUDE THE ENTIRE CODE IN YOUR RESPONSE. Do not leave any placeholders. Make it interactive and awesome.`;
-                console.log(`Prompt sent to Gemini:\n${prompt}\nModel: ${selectedModel}`);
-                try {
-                    elements.enhanceButton.disabled = true;
-                    elements.overlayLoader.style.display = 'flex';
-                    const model = genAI.getGenerativeModel({ model: selectedModel });
-                    let imageParts = [];
-                    if (uploadedImages.length > 0) {
-                        for (let image of uploadedImages) {
-                            const base64Data = await fileToBase64(image.file);
-                            imageParts.push({
-                                inlineData: {
-                                    data: base64Data,
-                                    mimeType: image.mimeType
-                                }
-                            });
-                        }
-                    }
-                    const contentArray = [prompt];
-                    imageParts.forEach(image => {
-                        contentArray.push(image);
-                    });
-                    const result = await model.generateContent(contentArray);
-                    let enhancedCode = await (await result.response).text();
-                    enhancedCode = processGeneratedCode(enhancedCode);
-                    const newEntry = {
-                        userInput: userInput,
-                        code: enhancedCode,
-                        fullPrompt: fullPrompt
-                    };
-                    history = history.slice(0, currentHistoryIndex + 1);
-                    history.push(newEntry);
-                    currentHistoryIndex++;
-                    localStorage.setItem('history', JSON.stringify(history));
-                    localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
-                    displayHistory();
-                    updateUndoRedoButtons();
-                    showToast("Website enhanced successfully!");
-                } catch (error) {
-                    console.error("Error enhancing code:", error);
-                    alert("There was an error enhancing the code. Please check the console for details.");
-                } finally {
-                    elements.overlayLoader.style.display = 'none';
-                    elements.enhanceButton.disabled = false;
-                }
-            });
-
-            elements.exportButton.addEventListener('click', () => {
-                if (history.length && currentHistoryIndex >= 0) {
-                    const blob = new Blob([history[currentHistoryIndex].code], { type: 'text/html' });
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = 'generated_website.html';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    showToast("Code exported as HTML file.");
-                } else if (isUsingCustomCode && elements.customCodeInput.value.trim()) {
-                    const blob = new Blob([elements.customCodeInput.value.trim()], { type: 'text/html' });
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = 'custom_website.html';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    showToast("Custom code exported as HTML file.");
-                } else {
-                    alert("No code available to export.");
-                }
-            });
-
-            elements.copyCodeBtn.addEventListener('click', () => {
-                const code = elements.codeDisplay.textContent.trim();
-                if (!code) {
-                    alert("No code available to copy.");
-                    return;
-                }
-                navigator.clipboard && window.isSecureContext
-                    ? navigator.clipboard.writeText(code).then(() => {
-                        showTooltip();
-                        showToast("Code copied to clipboard!");
-                    }).catch(err => {
-                        console.error("Failed to copy:", err);
-                        fallbackCopyText(code);
-                    })
-                    : fallbackCopyText(code);
-            });
-
-            elements.modelSelect.addEventListener('change', () => {
-                selectedModel = elements.modelSelect.value;
-                localStorage.setItem('selectedModel', selectedModel);
-                showToast(`AI Model changed to ${selectedModel}`);
-            });
-
-            elements.saveApiKeyBtn.addEventListener('click', () => {
-                const enteredApiKey = elements.apiKeyInput.value.trim();
-                if (!enteredApiKey) {
-                    alert("Please enter a valid API key.");
-                    return;
-                }
-                localStorage.setItem('apiKey', enteredApiKey);
-                API_KEY = enteredApiKey;
-                genAI = new GoogleGenerativeAI(API_KEY);
-                showToast("API Key saved successfully!");
-            });
-
-            // Image Upload Event Listeners
-            elements.imageUploadSection.addEventListener('click', () => {
-                elements.imageInput.click();
-            });
-
-            elements.imageUploadSection.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                elements.imageUploadSection.classList.add('dragover');
-            });
-
-            elements.imageUploadSection.addEventListener('dragleave', () => {
-                elements.imageUploadSection.classList.remove('dragover');
-            });
-
-            elements.imageUploadSection.addEventListener('drop', (e) => {
-                e.preventDefault();
-                elements.imageUploadSection.classList.remove('dragover');
-                const files = Array.from(e.dataTransfer.files).filter(file => validateImage(file));
-                handleImageFiles(files);
-            });
-
-            elements.imageInput.addEventListener('change', () => {
-                const files = Array.from(elements.imageInput.files).filter(file => validateImage(file));
-                handleImageFiles(files);
-                elements.imageInput.value = '';
-            });
-
-            // Handle Paste from Clipboard
-            document.addEventListener('paste', (e) => {
-                const items = e.clipboardData.items;
-                const files = [];
-                for (let item of items) {
-                    if (item.type.startsWith('image/')) {
-                        const file = item.getAsFile();
-                        if (validateImage(file)) {
-                            files.push(file);
-                        }
-                    }
-                }
-                if (files.length > 0) {
-                    handleImageFiles(files);
-                }
-            });
-
-            // Helper Functions for Image Handling
-            function validateImage(file) {
-                const validTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif'];
-                if (validTypes.includes(file.type)) {
-                    return true;
-                } else {
-                    alert(`Unsupported file type: ${file.type}`);
-                    return false;
-                }
-            }
-
-            function handleImageFiles(files) {
-                files.forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const imageUrl = e.target.result;
-                        const imageId = Date.now() + Math.random().toString(36).substr(2, 9);
-                        uploadedImages.push({
-                            id: imageId,
-                            file: file,
-                            name: file.name,
-                            mimeType: file.type
-                        });
-                        localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
-                        displayUploadedImages();
-                        showToast("Image uploaded successfully!");
-                    };
-                    reader.readAsDataURL(file);
-                });
-            }
-
-            function displayUploadedImages() {
-                elements.imagePreview.innerHTML = '';
-                uploadedImages.forEach(image => {
-                    const imgContainer = document.createElement('div');
-                    imgContainer.style.position = 'relative';
-                    const img = document.createElement('img');
-                    img.src = URL.createObjectURL(image.file);
-                    img.alt = image.name;
-                    const removeBtn = document.createElement('button');
-                    removeBtn.innerHTML = '&times;';
-                    removeBtn.classList.add('remove-image-btn');
-                    removeBtn.setAttribute('aria-label', 'Remove Image');
-                    removeBtn.addEventListener('click', () => {
-                        uploadedImages = uploadedImages.filter(img => img.id !== image.id);
-                        localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
-                        displayUploadedImages();
-                        showToast("Image removed.");
-                    });
-                    imgContainer.appendChild(img);
-                    imgContainer.appendChild(removeBtn);
-                    elements.imagePreview.appendChild(imgContainer);
-                });
-            }
-
-            // Helper Functions
-            function showTooltip() {
-                elements.copyTooltip.classList.add('show');
-                setTimeout(() => elements.copyTooltip.classList.remove('show'), 2000);
-            }
-
-            function showToast(message) {
-                elements.toastBody.textContent = message;
-                elements.toast.show();
-            }
-
-            function processGeneratedCode(code) {
-                return code.replace(/```html/g, "").replace(/```/g, "")
-                    .split('</html>')[0] + '</html>';
-            }
-
-            function displayGeneratedCode(code) {
-                elements.codeDisplay.textContent = code;
-                Prism.highlightElement(elements.codeDisplay);
-                const iframe = document.createElement('iframe');
-                iframe.srcdoc = code;
-                iframe.title = 'Generated Website Preview';
-                elements.contentDiv.innerHTML = '';
-                elements.contentDiv.appendChild(iframe);
-            }
-
-            function fallbackCopyText(text) {
-                const tempTextArea = document.createElement('textarea');
-                tempTextArea.value = text;
-                document.body.appendChild(tempTextArea);
-                tempTextArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(tempTextArea);
-                showTooltip();
-                showToast("Code copied to clipboard!");
-            }
-
-            // Convert file to base64 string
-            function fileToBase64(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => {
-                        const base64String = reader.result.split(',')[1];
-                        resolve(base64String);
-                    };
-                    reader.onerror = error => reject(error);
-                });
-            }
-
-            // History Management Functions
-            function addToHistory(userInput, code, fullPrompt) {
-                history = history.slice(0, currentHistoryIndex + 1);
-                history.push({ userInput, code, fullPrompt });
-                currentHistoryIndex++;
-                localStorage.setItem('history', JSON.stringify(history));
-                localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
-                updateUndoRedoButtons();
-            }
-
-            function displayHistory() {
-                if (currentHistoryIndex >= 0 && currentHistoryIndex < history.length) {
-                    const entry = history[currentHistoryIndex];
-                    elements.codeDisplay.textContent = entry.code;
+                    elements.customCodeInput.value = generatedCode;
+                    elements.codeDisplay.textContent = generatedCode;
                     Prism.highlightElement(elements.codeDisplay);
                     const iframe = document.createElement('iframe');
-                    iframe.srcdoc = entry.code;
+                    iframe.srcdoc = generatedCode;
                     iframe.title = 'Generated Website Preview';
                     elements.contentDiv.innerHTML = '';
                     elements.contentDiv.appendChild(iframe);
-                    elements.codeInput.value = entry.userInput;
+                    showToast("Website generated successfully with custom code!");
                 } else {
-                    elements.codeDisplay.textContent = "";
-                    elements.contentDiv.innerHTML = "";
-                    elements.codeInput.value = "";
+                    const newEntry = {
+                        userInput: userInput,
+                        code: generatedCode,
+                        fullPrompt: fullPrompt
+                    };
+                    history = history.slice(0, currentHistoryIndex + 1);
+                    history.push(newEntry);
+                    currentHistoryIndex++;
+                    localStorage.setItem('history', JSON.stringify(history));
+                    localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
+                    displayHistory();
+                    updateUndoRedoButtons();
+                    showToast("Website generated successfully!");
                 }
-            }
 
-            function updateUndoRedoButtons() {
-                elements.undoButton.disabled = currentHistoryIndex > 0 ? false : true;
-                elements.redoButton.disabled = currentHistoryIndex < history.length - 1 ? false : true;
-                if (!isUsingCustomCode && history.length > 0 && currentHistoryIndex >= 0) {
+                if (history.length > 0 && !isUsingCustomCode) {
                     elements.regenerateButton.disabled = false;
                     elements.enhanceButton.disabled = false;
-                } else {
-                    elements.regenerateButton.disabled = true;
-                    elements.enhanceButton.disabled = true;
+                }
+            } catch (error) {
+                console.error("Error generating code:", error);
+                alert("There was an error generating the code. Please check the console for details.");
+            } finally {
+                elements.overlayLoader.style.display = 'none';
+                elements.submitButton.disabled = false;
+            }
+        });
+
+        elements.clearButton.addEventListener('click', () => {
+            if (confirm("Are you sure you want to clear all generated content?")) {
+                elements.codeInput.value = "";
+                elements.contentDiv.innerHTML = "";
+                elements.codeDisplay.textContent = "";
+                Prism.highlightElement(elements.codeDisplay);
+                if (isUsingCustomCode) elements.customCodeInput.value = "";
+                history = [];
+                currentHistoryIndex = -1;
+                uploadedImages = [];
+                selectedParameters = [];
+                localStorage.removeItem('history');
+                localStorage.removeItem('currentHistoryIndex');
+                localStorage.removeItem('uploadedImages');
+                localStorage.removeItem('selectedParameters');
+                elements.imagePreview.innerHTML = '';
+                initializeSuggestions();
+                renderSelectedParameters();
+                updateUndoRedoButtons();
+                elements.regenerateButton.disabled = true;
+                elements.enhanceButton.disabled = true;
+                showToast("All content cleared.");
+            }
+        });
+
+        elements.undoButton.addEventListener('click', () => {
+            if (currentHistoryIndex > 0) {
+                currentHistoryIndex--;
+                localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
+                displayHistory();
+                updateUndoRedoButtons();
+                showToast("Undo action performed.");
+            }
+        });
+
+        elements.redoButton.addEventListener('click', () => {
+            if (currentHistoryIndex < history.length - 1) {
+                currentHistoryIndex++;
+                localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
+                displayHistory();
+                updateUndoRedoButtons();
+                showToast("Redo action performed.");
+            }
+        });
+
+        elements.regenerateButton.addEventListener('click', async () => {
+            if (currentHistoryIndex === -1 || history.length === 0) {
+                alert("No previous generation to regenerate.");
+                return;
+            }
+            const currentEntry = history[currentHistoryIndex];
+            const userInput = currentEntry.userInput;
+            const fullPrompt = constructPrompt(userInput, false);
+            try {
+                elements.regenerateButton.disabled = true;
+                elements.overlayLoader.style.display = 'flex';
+                const model = genAI.getGenerativeModel({ model: selectedModel });
+                let imageParts = [];
+                if (uploadedImages.length > 0) {
+                    for (let image of uploadedImages) {
+                        const base64Data = await fileToBase64(image.file);
+                        imageParts.push({
+                            inlineData: {
+                                data: base64Data,
+                                mimeType: image.mimeType
+                            }
+                        });
+                    }
+                }
+                const prompt = `Generate a single HTML codeblock containing the HTML structure, CSS styling, and JavaScript functionality based on the following description. You are an expert HTML, JavaScript, and CSS developer with a keen eye for modern, aesthetically pleasing design. Your task is to create a stunning, contemporary, and highly functional website based on the user's request using pure HTML, JavaScript, and CSS. This code will be rendered directly in the browser. General guidelines: - Create clean, modern interfaces using vanilla JavaScript and CSS - Use HTML5 semantic elements for better structure - Implement CSS3 features for animations and styling - Utilize modern JavaScript (ES6+) features - Create responsive designs using CSS media queries - You can use CDN-hosted libraries like: * jQuery * Bootstrap * Chart.js * Three.js * D3.js - For icons, use Unicode symbols or create simple SVG icons - Use CSS animations and transitions for smooth effects - Implement proper event handling with JavaScript - Create mock data instead of making API calls - Ensure cross-browser compatibility - Focus on performance and smooth animations Focus on creating a visually striking and user-friendly interface that aligns with current web design trends. Pay special attention to: - Typography: Use web-safe fonts or Google Fonts via CDN - Color: Implement a cohesive color scheme that complements the content - Layout: Design an intuitive and balanced layout using Flexbox/Grid - Animations: Add subtle CSS transitions and keyframe animations - Consistency: Maintain a consistent design language throughout Remember to only return code wrapped in HTML code blocks. The code should work directly in a browser without any build steps. Remember not add any description, just return the code only .Prioritize clean, well-structured, and visually appealing code that is all in one file. If you need to show images on the site, use Pexels API. https://api.pexels.com/v1/search. The api key is 563492ad6f917000010000019b983f3b62fe43daa92e746d4553dd35. ALWAYS INCLUDE THE ENTIRE CODE IN YOUR RESPONSE. DO NOT LEAVE ANY OF THE PREVIOUS CODE OUT. Do not leave any placeholders. Make it interactive and awesome: "${fullPrompt}". Rewrite the code again and, this time, give me the entire code instead of snippets. Do not give me any placeholders. If the user provides an image or a screenshot of a layout or a website, then make sure to try to emulate the style, fonts, and placements as closely as possible. Don't copy the wording though. Use your own words. I am an expert HTML, JavaScript, and CSS developer with a keen eye for modern, aesthetically pleasing design.
+                `;
+                console.log(`Prompt sent to Gemini:\n${prompt}\nModel: ${selectedModel}`);
+                const contentArray = [prompt];
+                imageParts.forEach(image => {
+                    contentArray.push(image);
+                });
+                const result = await model.generateContent(contentArray);
+                let regeneratedCode = await (await result.response).text();
+                regeneratedCode = processGeneratedCode(regeneratedCode);
+                const newEntry = {
+                    userInput: userInput,
+                    code: regeneratedCode,
+                    fullPrompt: fullPrompt
+                };
+                history = history.slice(0, currentHistoryIndex + 1);
+                history.push(newEntry);
+                currentHistoryIndex++;
+                localStorage.setItem('history', JSON.stringify(history));
+                localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
+                displayHistory();
+                updateUndoRedoButtons();
+                showToast("Website regenerated successfully!");
+            } catch (error) {
+                console.error("Error regenerating code:", error);
+                alert("There was an error regenerating the code. Please check the console for details.");
+            } finally {
+                elements.overlayLoader.style.display = 'none';
+                elements.regenerateButton.disabled = false;
+            }
+        });
+
+        elements.enhanceButton.addEventListener('click', async () => {
+            if (currentHistoryIndex === -1 || history.length === 0) {
+                alert("No previous generation to enhance.");
+                return;
+            }
+            const currentEntry = history[currentHistoryIndex];
+            const userInput = currentEntry.userInput;
+            const previousCode = currentEntry.code;
+            const fullPrompt = currentEntry.fullPrompt;
+            const enhanceInstruction = "Make this way better and enhance it from a design and functionality perspective. Make it have the same original intention, but now it will be awesome and mega enhanced.";
+            const prompt = `${enhanceInstruction} The original description was: "${fullPrompt}". The code to improve is: "${previousCode}". Generate a single HTML codeblock containing the improved HTML structure, CSS styling, and JavaScript functionality based on the description and code provided. Prioritize clean, well-structured, and visually appealing code that is all in one file. If you need to show images on the site, use Pexels API. https://api.pexels.com/v1/search. The api key is 563492ad6f917000010000019b983f3b62fe43daa92e746d4553dd35. ALWAYS INCLUDE THE ENTIRE CODE IN YOUR RESPONSE. Do not leave any placeholders. Make it interactive and awesome.`;
+            console.log(`Prompt sent to Gemini:\n${prompt}\nModel: ${selectedModel}`);
+            try {
+                elements.enhanceButton.disabled = true;
+                elements.overlayLoader.style.display = 'flex';
+                const model = genAI.getGenerativeModel({ model: selectedModel });
+                let imageParts = [];
+                if (uploadedImages.length > 0) {
+                    for (let image of uploadedImages) {
+                        const base64Data = await fileToBase64(image.file);
+                        imageParts.push({
+                            inlineData: {
+                                data: base64Data,
+                                mimeType: image.mimeType
+                            }
+                        });
+                    }
+                }
+                const contentArray = [prompt];
+                imageParts.forEach(image => {
+                    contentArray.push(image);
+                });
+                const result = await model.generateContent(contentArray);
+                let enhancedCode = await (await result.response).text();
+                enhancedCode = processGeneratedCode(enhancedCode);
+                const newEntry = {
+                    userInput: userInput,
+                    code: enhancedCode,
+                    fullPrompt: fullPrompt
+                };
+                history = history.slice(0, currentHistoryIndex + 1);
+                history.push(newEntry);
+                currentHistoryIndex++;
+                localStorage.setItem('history', JSON.stringify(history));
+                localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
+                displayHistory();
+                updateUndoRedoButtons();
+                showToast("Website enhanced successfully!");
+            } catch (error) {
+                console.error("Error enhancing code:", error);
+                alert("There was an error enhancing the code. Please check the console for details.");
+            } finally {
+                elements.overlayLoader.style.display = 'none';
+                elements.enhanceButton.disabled = false;
+            }
+        });
+
+        elements.exportButton.addEventListener('click', () => {
+            if (history.length && currentHistoryIndex >= 0) {
+                const blob = new Blob([history[currentHistoryIndex].code], { type: 'text/html' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'generated_website.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showToast("Code exported as HTML file.");
+            } else if (isUsingCustomCode && elements.customCodeInput.value.trim()) {
+                const blob = new Blob([elements.customCodeInput.value.trim()], { type: 'text/html' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'custom_website.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showToast("Custom code exported as HTML file.");
+            } else {
+                alert("No code available to export.");
+            }
+        });
+
+        elements.copyCodeBtn.addEventListener('click', () => {
+            const code = elements.codeDisplay.textContent.trim();
+            if (!code) {
+                alert("No code available to copy.");
+                return;
+            }
+            navigator.clipboard && window.isSecureContext
+                ? navigator.clipboard.writeText(code).then(() => {
+                    showTooltip();
+                    showToast("Code copied to clipboard!");
+                }).catch(err => {
+                    console.error("Failed to copy:", err);
+                    fallbackCopyText(code);
+                })
+                : fallbackCopyText(code);
+        });
+
+        elements.modelSelect.addEventListener('change', () => {
+            selectedModel = elements.modelSelect.value;
+            localStorage.setItem('selectedModel', selectedModel);
+            showToast(`AI Model changed to ${selectedModel}`);
+        });
+
+        elements.saveApiKeyBtn.addEventListener('click', () => {
+            const enteredApiKey = elements.apiKeyInput.value.trim();
+            if (!enteredApiKey) {
+                alert("Please enter a valid API key.");
+                return;
+            }
+            localStorage.setItem('apiKey', enteredApiKey);
+            API_KEY = enteredApiKey;
+            genAI = new GoogleGenerativeAI(API_KEY);
+            showToast("API Key saved successfully!");
+        });
+
+        // Image Upload Event Listeners
+        elements.imageUploadSection.addEventListener('click', () => {
+            elements.imageInput.click();
+        });
+
+        elements.imageUploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            elements.imageUploadSection.classList.add('dragover');
+        });
+
+        elements.imageUploadSection.addEventListener('dragleave', () => {
+            elements.imageUploadSection.classList.remove('dragover');
+        });
+
+        elements.imageUploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            elements.imageUploadSection.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files).filter(file => validateImage(file));
+            handleImageFiles(files);
+        });
+
+        elements.imageInput.addEventListener('change', () => {
+            const files = Array.from(elements.imageInput.files).filter(file => validateImage(file));
+            handleImageFiles(files);
+            elements.imageInput.value = '';
+        });
+
+        // Handle Paste from Clipboard
+        document.addEventListener('paste', (e) => {
+            const items = e.clipboardData.items;
+            const files = [];
+            for (let item of items) {
+                if (item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    if (validateImage(file)) {
+                        files.push(file);
+                    }
                 }
             }
-
-            // Initialize settings on load
-            initializeSettings();
+            if (files.length > 0) {
+                handleImageFiles(files);
+            }
         });
-    </script>
+
+        // Helper Functions for Image Handling
+        function validateImage(file) {
+            const validTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif'];
+            if (validTypes.includes(file.type)) {
+                return true;
+            } else {
+                alert(`Unsupported file type: ${file.type}`);
+                return false;
+            }
+        }
+
+        function handleImageFiles(files) {
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imageUrl = e.target.result;
+                    const imageId = Date.now() + Math.random().toString(36).substr(2, 9);
+                    uploadedImages.push({
+                        id: imageId,
+                        file: file,
+                        name: file.name,
+                        mimeType: file.type
+                    });
+                    localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
+                    displayUploadedImages();
+                    showToast("Image uploaded successfully!");
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function displayUploadedImages() {
+            elements.imagePreview.innerHTML = '';
+            uploadedImages.forEach(image => {
+                const imgContainer = document.createElement('div');
+                imgContainer.style.position = 'relative';
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(image.file);
+                img.alt = image.name;
+                const removeBtn = document.createElement('button');
+                removeBtn.innerHTML = '&times;';
+                removeBtn.classList.add('remove-image-btn');
+                removeBtn.setAttribute('aria-label', 'Remove Image');
+                removeBtn.addEventListener('click', () => {
+                    uploadedImages = uploadedImages.filter(img => img.id !== image.id);
+                    localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
+                    displayUploadedImages();
+                    showToast("Image removed.");
+                });
+                imgContainer.appendChild(img);
+                imgContainer.appendChild(removeBtn);
+                elements.imagePreview.appendChild(imgContainer);
+            });
+        }
+
+        // Helper Functions
+        function showTooltip() {
+            elements.copyTooltip.classList.add('show');
+            setTimeout(() => elements.copyTooltip.classList.remove('show'), 2000);
+        }
+
+        function showToast(message) {
+            elements.toastBody.textContent = message;
+            elements.toast.show();
+        }
+
+        function processGeneratedCode(code) {
+            return code.replace(/```html/g, "").replace(/```/g, "")
+                .split('</html>')[0] + '</html>';
+        }
+
+        function displayGeneratedCode(code) {
+            elements.codeDisplay.textContent = code;
+            Prism.highlightElement(elements.codeDisplay);
+            const iframe = document.createElement('iframe');
+            iframe.srcdoc = code;
+            iframe.title = 'Generated Website Preview';
+            elements.contentDiv.innerHTML = '';
+            elements.contentDiv.appendChild(iframe);
+        }
+
+        function fallbackCopyText(text) {
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = text;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+            showTooltip();
+            showToast("Code copied to clipboard!");
+        }
+
+        // Convert file to base64 string
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    const base64String = reader.result.split(',')[1];
+                    resolve(base64String);
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // History Management Functions
+        function addToHistory(userInput, code, fullPrompt) {
+            history = history.slice(0, currentHistoryIndex + 1);
+            history.push({ userInput, code, fullPrompt });
+            currentHistoryIndex++;
+            localStorage.setItem('history', JSON.stringify(history));
+            localStorage.setItem('currentHistoryIndex', currentHistoryIndex);
+            updateUndoRedoButtons();
+        }
+
+        function displayHistory() {
+            if (currentHistoryIndex >= 0 && currentHistoryIndex < history.length) {
+                const entry = history[currentHistoryIndex];
+                elements.codeDisplay.textContent = entry.code;
+                Prism.highlightElement(elements.codeDisplay);
+                const iframe = document.createElement('iframe');
+                iframe.srcdoc = entry.code;
+                iframe.title = 'Generated Website Preview';
+                elements.contentDiv.innerHTML = '';
+                elements.contentDiv.appendChild(iframe);
+                elements.codeInput.value = entry.userInput;
+            } else {
+                elements.codeDisplay.textContent = "";
+                elements.contentDiv.innerHTML = "";
+                elements.codeInput.value = "";
+            }
+        }
+
+        function updateUndoRedoButtons() {
+            elements.undoButton.disabled = currentHistoryIndex > 0 ? false : true;
+            elements.redoButton.disabled = currentHistoryIndex < history.length - 1 ? false : true;
+            if (!isUsingCustomCode && history.length > 0 && currentHistoryIndex >= 0) {
+                elements.regenerateButton.disabled = false;
+                elements.enhanceButton.disabled = false;
+            } else {
+                elements.regenerateButton.disabled = true;
+                elements.enhanceButton.disabled = true;
+            }
+        }
+
+        // Initialize settings on load
+        initializeSettings();
+    });
+</script>
 </body>
 
 </html>

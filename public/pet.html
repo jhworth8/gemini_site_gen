@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Adventure Virtual Character - Epic Story Mode</title>
+  <style>
+    /* Basic Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: "Trebuchet MS", sans-serif;
+      background: #1e1e1e;
+      color: #eee;
+      overflow: hidden;
+    }
+    /* Game Frame */
+    #game-frame {
+      max-width: 1000px;
+      height: 90vh;
+      margin: 20px auto;
+      background: #2e2e2e;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    header {
+      background: #444;
+      padding: 10px;
+      text-align: center;
+      position: relative;
+    }
+    header h1 {
+      font-size: 2rem;
+      color: #f0a500;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    /* Stats Display */
+    #stats-display {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #555;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      text-align: left;
+      z-index: 100;
+    }
+    /* Main Content Area */
+    main {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      padding: 10px;
+    }
+    /* Input Section */
+    #input-section {
+      margin: 10px;
+      overflow-y: auto;
+    }
+    .tab-buttons {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .tab-buttons button {
+      background: #555;
+      border: none;
+      color: #eee;
+      padding: 10px 20px;
+      margin: 0 5px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background 0.3s;
+      text-transform: uppercase;
+    }
+    .tab-buttons button.active {
+      background: #f0a500;
+      color: #222;
+    }
+    .input-form {
+      background: #444;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    .input-form label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .input-form input,
+    .input-form textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #666;
+      border-radius: 4px;
+      background: #333;
+      color: #eee;
+    }
+    .input-form button {
+      padding: 10px 15px;
+      background: #f0a500;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    .input-form button:hover {
+      background: #c07d00;
+    }
+    .hidden {
+      display: none;
+    }
+    /* Story Container */
+    #story-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      padding-top: 100px; /* space for mission header */
+      padding-bottom: 20px;
+      transition: opacity 1s, transform 1s;
+      scroll-behavior: smooth;
+    }
+    .fade-out {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    .fade-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    /* Mission Header (fixed) */
+    #mission-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #333;
+      padding: 20px;
+      border-bottom: 2px solid #f0a500;
+      z-index: 10;
+    }
+    #mission-header h2 {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ffa726;
+    }
+    #mission-header p {
+      font-size: 1.2rem;
+      color: #ffcc80;
+    }
+    /* Big Messages for Transitions */
+    .big-message {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ffca28;
+      text-align: center;
+      margin: 20px 0;
+      text-shadow: 2px 2px 4px #000;
+    }
+    .next-mission {
+      font-size: 1.5rem;
+      color: #66ff99;
+      text-align: center;
+      margin: 20px 0;
+    }
+    /* Option Buttons */
+    .option-btn {
+      padding: 10px 15px;
+      margin: 5px;
+      background: #6a1b9a;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .option-btn:hover {
+      background: #4a148c;
+    }
+    .option-selected {
+      font-weight: bold;
+      color: #00e676;
+    }
+    /* Typewriter Text */
+    .typewriter {
+      font-family: "Courier New", Courier, monospace;
+      white-space: pre-wrap;
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+    /* Dialogue style */
+    .dialogue {
+      font-style: italic;
+      margin-top: 10px;
+    }
+    /* Objective style */
+    .objective {
+      font-weight: bold;
+      color: #81d4fa;
+      margin-top: 15px;
+      padding-bottom: 5px;
+      border-bottom: 1px dotted #81d4fa;
+    }
+    /* Status update message */
+    .status-update {
+      font-style: italic;
+      color: #b2ff59;
+      margin-top: 10px;
+    }
+    /* Spinner */
+    .spinner {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.2rem;
+      color: #f0a500;
+      z-index: 1000;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .spinner:after {
+      content: "";
+      display: block;
+      width: 40px;
+      height: 40px;
+      margin: 10px auto;
+      border-radius: 50%;
+      border: 4px solid #f0a500;
+      border-color: #f0a500 transparent #f0a500 transparent;
+      animation: spin 1.2s linear infinite;
+    }
+    footer {
+      background: #444;
+      text-align: center;
+      padding: 10px;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "@google/generative-ai": "https://esm.run/@google/generative-ai"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="game-frame">
+    <header>
+      <h1>Adventure Virtual Character</h1>
+      <div id="stats-display">
+        <div id="stat-hunger">Hunger: --</div>
+        <div id="stat-happiness">Happiness: --</div>
+        <div id="stat-energy">Energy: --</div>
+        <div id="stat-health">Health: --</div>
+      </div>
+    </header>
+    <main>
+      <!-- Input Section -->
+      <div id="input-section">
+        <div class="tab-buttons">
+          <button id="tab-custom" class="active">Custom</button>
+          <button id="tab-sentence">Sentence</button>
+          <button id="tab-random">Random</button>
+        </div>
+        <div id="form-custom" class="input-form">
+          <label for="characterType">Enter your virtual character type:</label>
+          <input type="text" id="characterType" placeholder="e.g., Cyber Samurai, Mystic Sage" />
+          <label for="characterTraits">Enter character traits (comma-separated):</label>
+          <input type="text" id="characterTraits" placeholder="e.g., brave, wise, agile" />
+          <label for="characterLikes">Enter character likes (comma-separated):</label>
+          <input type="text" id="characterLikes" placeholder="e.g., adventure, puzzles" />
+          <label for="characterDislikes">Enter character dislikes (comma-separated):</label>
+          <input type="text" id="characterDislikes" placeholder="e.g., monotony, chaos" />
+          <button id="start-custom">Start Adventure</button>
+        </div>
+        <div id="form-sentence" class="input-form hidden">
+          <label for="characterSentence">Describe your character adventure in one sentence:</label>
+          <textarea id="characterSentence" rows="3" placeholder="A daring digital wanderer who seeks ancient secrets..."></textarea>
+          <button id="start-sentence">Start Adventure</button>
+        </div>
+        <div id="form-random" class="input-form hidden">
+          <p>Let fate decide your character's adventure!</p>
+          <button id="start-random">Generate Random Adventure</button>
+        </div>
+      </div>
+      <!-- Game Section -->
+      <div id="game-section" class="hidden">
+        <div id="mission-header"></div>
+        <div id="story-container" class="typewriter fade-in">
+          <!-- Mission content auto-scrolls here -->
+        </div>
+      </div>
+    </main>
+    <footer>
+      <p>Adventure Virtual Character powered by Gemini API</p>
+    </footer>
+  </div>
+  <div id="spinner" class="spinner hidden"></div>
+  
+  <script type="module">
+    import { GoogleGenerativeAI } from "@google/generative-ai";
+
+    /********* CONFIG & DOM REFERENCES *********/
+    const API_KEY = "AIzaSyAZUKcc90MfN2dGneHLoRljaVcUdJM6O6Q"; // Replace with your API key
+    const spinnerDiv = document.getElementById("spinner");
+    const gameSection = document.getElementById("game-section");
+    const inputSection = document.getElementById("input-section");
+    const storyContainer = document.getElementById("story-container");
+    const missionHeader = document.getElementById("mission-header");
+
+    // Stats elements
+    const statHunger = document.getElementById("stat-hunger");
+    const statHappiness = document.getElementById("stat-happiness");
+    const statEnergy = document.getElementById("stat-energy");
+    const statHealth = document.getElementById("stat-health");
+
+    // Input tabs & forms
+    const tabCustom = document.getElementById("tab-custom");
+    const tabSentence = document.getElementById("tab-sentence");
+    const tabRandom = document.getElementById("tab-random");
+    const formCustom = document.getElementById("form-custom");
+    const formSentence = document.getElementById("form-sentence");
+    const formRandom = document.getElementById("form-random");
+
+    let missionsData = [];
+    let characterNeeds = { hunger: 0, happiness: 0, energy: 0, health: 0 };
+    let currentMissionIndex = 0;
+
+    /********* UI TAB SWITCHING *********/
+    tabCustom.addEventListener("click", () => {
+      tabCustom.classList.add("active");
+      tabSentence.classList.remove("active");
+      tabRandom.classList.remove("active");
+      formCustom.classList.remove("hidden");
+      formSentence.classList.add("hidden");
+      formRandom.classList.add("hidden");
+    });
+    tabSentence.addEventListener("click", () => {
+      tabCustom.classList.remove("active");
+      tabSentence.classList.add("active");
+      tabRandom.classList.remove("active");
+      formCustom.classList.add("hidden");
+      formSentence.classList.remove("hidden");
+      formRandom.classList.add("hidden");
+    });
+    tabRandom.addEventListener("click", () => {
+      tabCustom.classList.remove("active");
+      tabSentence.classList.remove("active");
+      tabRandom.classList.add("active");
+      formCustom.classList.add("hidden");
+      formSentence.classList.add("hidden");
+      formRandom.classList.remove("hidden");
+    });
+
+    /********* SPINNER & JSON EXTRACTION *********/
+    function showSpinner() { spinnerDiv.classList.remove("hidden"); }
+    function hideSpinner() { spinnerDiv.classList.add("hidden"); }
+    function extractJsonFoolproof(responseText) {
+      const startMarker = "-JSON START-";
+      const endMarker = "-JSON END-";
+      let jsonText = null;
+      if(responseText.includes(startMarker) && responseText.includes(endMarker)) {
+        const startIndex = responseText.indexOf(startMarker);
+        const endIndex = responseText.indexOf(endMarker, startIndex);
+        jsonText = responseText.substring(startIndex + startMarker.length, endIndex).trim();
+      } else {
+        const regex = /({.*})/s;
+        const match = responseText.match(regex);
+        if(match) { jsonText = match[1]; }
+      }
+      if(!jsonText) { console.error("No JSON found in response."); return null; }
+      jsonText = jsonText.replace(/:\s*\+(\d+)/g, ": $1");
+      return jsonText;
+    }
+
+    /********* PROMPT GENERATION *********/
+    function buildPrompt(characterDetails) {
+      // Framework schema: keys and structure only ("the bones")
+      const frameworkSchema = `
+{
+  "characterName": "string",
+  "characterType": "string",
+  "personality": {
+    "description": "string",
+    "traits": ["string", "string", ...]
+  },
+  "needs": {
+    "hunger": "integer (0-100)",
+    "happiness": "integer (0-100)",
+    "energy": "integer (0-100)",
+    "health": "integer (0-100)"
+  },
+  "likes": ["string", "string", ...],
+  "dislikes": ["string", "string", ...],
+  "missions": [
+    {
+      "missionName": "string",
+      "missionDescription": "string",
+      "objectives": [
+        {
+          "objectiveDescription": "string",
+          "item": {
+            "itemName": "string",
+            "itemType": "string",
+            "itemOptions": ["string", "string", "string", "string", "string"]
+          },
+          "dialogue": ["string", "string", "string", "string", "string"],
+          "outcome": {
+            "hungerChange": "integer",
+            "happinessChange": "integer",
+            "energyChange": "integer",
+            "healthChange": "integer"
+          }
+        },
+        ...
+      ],
+      "event": {
+        "eventType": "battle or choice",
+        "description": "string",
+        "enemy": {
+          "enemyName": "string",
+          "stats": {
+            "health": "integer",
+            "attack": "integer",
+            "defense": "integer"
+          },
+          "moves": [
+            {
+              "moveName": "string",
+              "damage": "integer",
+              "accuracy": "integer"
+            },
+            ...
+          ]
+        },
+        "choices": [
+          {
+            "choiceDescription": "string",
+            "outcome": {
+              "hungerChange": "integer",
+              "happinessChange": "integer",
+              "energyChange": "integer",
+              "healthChange": "integer"
+            }
+          },
+          ...
+        ]
+      }
+    },
+    ...
+  ]
+}
+`;
+      // Here, the term "character" should be interpreted as a virtual character – its description will determine its nature.
+      if(characterDetails.mode === "custom") {
+        return `
+-JSON START-
+Generate data for a virtual character game adventure. The character is a ${characterDetails.characterType}.
+Describe the character's personality in a short paragraph using the following traits: ${characterDetails.characterTraits}.
+The character likes ${characterDetails.characterLikes} and dislikes ${characterDetails.characterDislikes}.
+Create 7 missions. For each mission, include:
+  - missionName and missionDescription.
+  - 6 objectives. Each objective must include:
+      - objectiveDescription.
+      - item: an object with itemName, itemType, and itemOptions (an array of 5 contextually appropriate action options that make sense for that item—for example, if the item is a door, options might be "knock", "inspect", "open slowly", etc.).
+      - dialogue: an array of 5 lines.
+      - outcome: an object with hungerChange, happinessChange, energyChange, and healthChange (all integers) that are generated as part of the character's profile.
+  - An event object. The event can be either a "battle" or a "choice" event.
+      - For a battle event, include:
+          - eventType: "battle"
+          - description.
+          - enemy: an object with enemyName, stats (health, attack, defense), and moves (an array of objects, each with moveName, damage, accuracy).
+      - For a choice event, include:
+          - eventType: "choice"
+          - description.
+          - choices: an array of objects, each with choiceDescription and an outcome (with hungerChange, happinessChange, energyChange, healthChange).
+Also include a characterName and a needs object (the four attributes should be generated based on the character) with randomized starting values between 30 and 80.
+Framework Schema:
+${frameworkSchema}
+-JSON END-
+        `;
+      } else if(characterDetails.mode === "sentence") {
+        return `
+-JSON START-
+Based on the sentence "${characterDetails.sentence}", generate data for a virtual character game adventure.
+Extract a character type, personality traits, likes, and dislikes.
+Create a characterName and a needs object (the four attributes generated as part of the character) with randomized values between 30 and 80 for hunger, happiness, energy, and health.
+Then create 7 missions. For each mission, include:
+  - missionName and missionDescription.
+  - 6 objectives (each with objectiveDescription, an item with itemName, itemType, and itemOptions—ensure options are contextually appropriate—, dialogue (5 lines), and outcome with hungerChange, happinessChange, energyChange, healthChange).
+  - An event that is either a "battle" or a "choice" event. For a battle event, include enemy details (enemyName, stats, moves). For a choice event, include choices (each with choiceDescription and outcome).
+Framework Schema:
+${frameworkSchema}
+-JSON END-
+        `;
+      } else if(characterDetails.mode === "random") {
+        return `
+-JSON START-
+Generate data for a virtual character game adventure with random details.
+Create a character with a random type, personality traits, likes, and dislikes.
+Generate a characterName and a needs object (the four attributes should be crafted for the character) with randomized values between 30 and 80 for hunger, happiness, energy, and health.
+Then create 7 missions. For each mission, include:
+  - missionName and missionDescription.
+  - 6 objectives (each with objectiveDescription, an item with itemName, itemType, and itemOptions—an array of 5 contextually appropriate action options, dialogue (5 lines), and outcome with hungerChange, happinessChange, energyChange, healthChange).
+  - An event that is either a "battle" or a "choice" event. For a battle event, include enemy details (enemyName, stats, moves). For a choice event, include choices (each with choiceDescription and outcome).
+Framework Schema:
+${frameworkSchema}
+-JSON END-
+        `;
+      }
+      return "";
+    }
+
+    /********* GEMINI API CALL *********/
+    async function generatecharacterData(characterDetails) {
+      const prompt = buildPrompt(characterDetails);
+      if(!prompt) return null;
+      try {
+        showSpinner();
+        const genAI = new GoogleGenerativeAI(API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-thinking-exp-01-21" });
+        const result = await model.generateContent(prompt);
+        const responseText = await result.response.text();
+        hideSpinner();
+        const jsonString = extractJsonFoolproof(responseText);
+        if(!jsonString) { console.error("JSON extraction failed."); return null; }
+        const jsonData = JSON.parse(jsonString);
+        return jsonData;
+      } catch(error) {
+        hideSpinner();
+        console.error("API call error:", error);
+        return null;
+      }
+    }
+
+    /********* STAT MANAGEMENT *********/
+    function updateStatsDisplay() {
+      statHunger.textContent = "Hunger: " + characterNeeds.hunger;
+      statHappiness.textContent = "Happiness: " + characterNeeds.happiness;
+      statEnergy.textContent = "Energy: " + characterNeeds.energy;
+      statHealth.textContent = "Health: " + characterNeeds.health;
+      [statHunger, statHappiness, statEnergy, statHealth].forEach(el => {
+        el.classList.add("stats-change");
+        setTimeout(() => el.classList.remove("stats-change"), 500);
+      });
+    }
+    function displayInitialStats(needs) {
+      characterNeeds = { ...needs };
+      updateStatsDisplay();
+    }
+
+    /********* TYPEWRITER & TRANSITIONS *********/
+    function typePrint(element, text, delay = 20) {
+      return new Promise(resolve => {
+        let i = 0;
+        function printChar() {
+          if(i < text.length) {
+            element.innerHTML += text.charAt(i);
+            i++;
+            storyContainer.scrollTo({ top: storyContainer.scrollHeight, behavior: 'smooth' });
+            setTimeout(printChar, delay);
+          } else {
+            element.innerHTML += "\n";
+            resolve();
+          }
+        }
+        printChar();
+      });
+    }
+    function fadeOut(element) {
+      return new Promise(resolve => {
+        element.classList.add("fade-out");
+        setTimeout(() => { element.innerHTML = ""; resolve(); }, 1000);
+      });
+    }
+    function fadeIn(element) {
+      element.classList.remove("fade-out");
+      element.classList.add("fade-in");
+    }
+
+    /********* EMOJI GENERATOR *********/
+    function generateEmojis(description) {
+      const dict = [
+        { keyword: "cat", emoji: "🐈‍⬛" },
+        { keyword: "bacon", emoji: "🥓" },
+        { keyword: "dragon", emoji: "🐉" },
+        { keyword: "fire", emoji: "🔥" },
+        { keyword: "water", emoji: "💧" },
+        { keyword: "treasure", emoji: "💰" },
+        { keyword: "battle", emoji: "⚔️" },
+        { keyword: "enemy", emoji: "💥" },
+        { keyword: "run", emoji: "💨" },
+        { keyword: "dog", emoji: "🐕" },
+        { keyword: "bird", emoji: "🐦" }
+      ];
+      let emojis = "";
+      const lower = description.toLowerCase();
+      dict.forEach(entry => { if(lower.includes(entry.keyword)) { emojis += entry.emoji; } });
+      return emojis ? " " + emojis : "";
+    }
+
+    /********* AUTO-SCROLL OBSERVER *********/
+    // MutationObserver ensures any changes to the story container scroll it to the bottom
+    const observer = new MutationObserver(() => {
+      storyContainer.scrollTop = storyContainer.scrollHeight;
+    });
+    observer.observe(storyContainer, { childList: true, subtree: true });
+
+    /********* GAME LOGIC *********/
+    document.addEventListener("keydown", function(e) {
+      if(gameSection.classList.contains("hidden")) return;
+      const key = parseInt(e.key);
+      if(!isNaN(key)) {
+        const optionButtons = document.querySelectorAll(".option-btn");
+        if(key > 0 && key <= optionButtons.length) {
+          optionButtons[key - 1].click();
+        }
+      }
+    });
+    function waitForChoice(options, container) {
+      return new Promise(resolve => {
+        const btnContainer = document.createElement("div");
+        btnContainer.style.marginTop = "10px";
+        options.forEach((optionText, index) => {
+          const btn = document.createElement("button");
+          btn.className = "option-btn";
+          btn.textContent = `${index + 1}. ${optionText}`;
+          btn.addEventListener("click", () => {
+            btn.classList.add("option-selected");
+            setTimeout(() => { btnContainer.remove(); resolve(index); }, 300);
+          });
+          btnContainer.appendChild(btn);
+        });
+        container.appendChild(btnContainer);
+      });
+    }
+
+    async function playMission(mission) {
+      // Set fixed mission header
+      missionHeader.innerHTML = "";
+      const headerTitle = document.createElement("h2");
+      headerTitle.textContent = "MISSION: " + mission.missionName + generateEmojis(mission.missionName);
+      const headerDesc = document.createElement("p");
+      headerDesc.textContent = mission.missionDescription;
+      missionHeader.appendChild(headerTitle);
+      missionHeader.appendChild(headerDesc);
+      
+      // Create a content container for mission events
+      const missionContent = document.createElement("div");
+      missionContent.className = "mission-content";
+      storyContainer.appendChild(missionContent);
+      
+      // Process objectives
+      for(const objective of mission.objectives) {
+        const objBlock = document.createElement("div");
+        objBlock.className = "objective";
+        objBlock.textContent = "Objective: " + objective.objectiveDescription + generateEmojis(objective.objectiveDescription);
+        missionContent.appendChild(objBlock);
+        
+        const itemBlock = document.createElement("div");
+        itemBlock.style.marginTop = "5px";
+        itemBlock.style.color = "#b3e5fc";
+        itemBlock.textContent = "Item: " + objective.item.itemName + " (" + objective.item.itemType + ")";
+        missionContent.appendChild(itemBlock);
+        
+        const optionsBlock = document.createElement("div");
+        optionsBlock.style.marginTop = "5px";
+        missionContent.appendChild(optionsBlock);
+        await typePrint(optionsBlock, "Options:", 15);
+        
+        const choiceIndex = await waitForChoice(objective.item.itemOptions, optionsBlock);
+        const chosenBlock = document.createElement("div");
+        chosenBlock.style.marginTop = "5px";
+        chosenBlock.textContent = "You chose: " + objective.item.itemOptions[choiceIndex];
+        missionContent.appendChild(chosenBlock);
+        
+        // Add dialogue lines (each on its own line and italicized)
+        for(const line of objective.dialogue) {
+          const dialogueBlock = document.createElement("div");
+          dialogueBlock.className = "dialogue";
+          dialogueBlock.textContent = line;
+          missionContent.appendChild(dialogueBlock);
+          await new Promise(r => setTimeout(r, 300));
+        }
+        
+        // Update character attributes and show a status update message.
+        characterNeeds.hunger = Math.min(100, Math.max(0, characterNeeds.hunger + (objective.outcome.hungerChange || 0)));
+        characterNeeds.happiness = Math.min(100, Math.max(0, characterNeeds.happiness + (objective.outcome.happinessChange || 0)));
+        characterNeeds.energy = Math.min(100, Math.max(0, characterNeeds.energy + (objective.outcome.energyChange || 0)));
+        characterNeeds.health = Math.min(100, Math.max(0, characterNeeds.health + (objective.outcome.healthChange || 0)));
+        updateStatsDisplay();
+        const statusMsg = document.createElement("div");
+        statusMsg.className = "status-update";
+        statusMsg.textContent = "Vital signs recalibrated!";
+        missionContent.appendChild(statusMsg);
+      }
+      
+      // Process event
+      if(mission.event) {
+        const eventBlock = document.createElement("div");
+        eventBlock.style.marginTop = "20px";
+        eventBlock.style.fontSize = "1.4rem";
+        eventBlock.style.color = "#ff8a65";
+        missionContent.appendChild(eventBlock);
+        await typePrint(eventBlock, "Event: " + mission.event.description + generateEmojis(mission.event.description), 15);
+        
+        if(mission.event.eventType.toLowerCase() === "battle") {
+          let enemyHealth = mission.event.enemy.stats.health;
+          let battleOngoing = true;
+          await typePrint(eventBlock, "Battle Initiated! Enemy: " + mission.event.enemy.enemyName + " (HP: " + enemyHealth + ")", 15);
+          while(battleOngoing && enemyHealth > 0) {
+            const moves = mission.event.enemy.moves.map(m => m.moveName);
+            const moveChoice = await waitForChoice(moves, eventBlock);
+            const selectedMove = mission.event.enemy.moves[moveChoice];
+            await typePrint(eventBlock, "You used " + selectedMove.moveName + "! Damage: " + selectedMove.damage, 15);
+            enemyHealth -= selectedMove.damage;
+            if(enemyHealth <= 0) {
+              await typePrint(eventBlock, "Enemy defeated!", 15);
+              characterNeeds.happiness = Math.min(100, characterNeeds.happiness + 10);
+              characterNeeds.energy = Math.max(0, characterNeeds.energy - 5);
+              updateStatsDisplay();
+              battleOngoing = false;
+            } else {
+              await typePrint(eventBlock, "Enemy's remaining HP: " + enemyHealth, 15);
+              const enemyMove = mission.event.enemy.moves[Math.floor(Math.random() * mission.event.enemy.moves.length)];
+              await typePrint(eventBlock, "Enemy used " + enemyMove.moveName + "! Damage: " + enemyMove.damage, 15);
+              characterNeeds.health = Math.max(0, characterNeeds.health - enemyMove.damage);
+              updateStatsDisplay();
+              if(characterNeeds.health <= 0) {
+                await typePrint(eventBlock, "Oh no! Your character has been defeated!", 15);
+                battleOngoing = false;
+              }
+            }
+          }
+        } else if(mission.event.eventType.toLowerCase() === "choice") {
+          await typePrint(eventBlock, "Choice Event: Make your decision!", 15);
+          const choiceIndex = await waitForChoice(mission.event.choices.map(c => c.choiceDescription), eventBlock);
+          const chosenOutcome = mission.event.choices[choiceIndex].outcome;
+          characterNeeds.hunger = Math.min(100, Math.max(0, characterNeeds.hunger + (chosenOutcome.hungerChange || 0)));
+          characterNeeds.happiness = Math.min(100, Math.max(0, characterNeeds.happiness + (chosenOutcome.happinessChange || 0)));
+          characterNeeds.energy = Math.min(100, Math.max(0, characterNeeds.energy + (chosenOutcome.energyChange || 0)));
+          characterNeeds.health = Math.min(100, Math.max(0, characterNeeds.health + (chosenOutcome.healthChange || 0)));
+          updateStatsDisplay();
+          await typePrint(eventBlock, "Your decision has been made.", 15);
+        }
+      }
+    }
+
+    async function startMissions(missions) {
+      currentMissionIndex = 0;
+      while(currentMissionIndex < missions.length) {
+        await playMission(missions[currentMissionIndex]);
+        if(currentMissionIndex < missions.length - 1) {
+          const transitionBlock = document.createElement("div");
+          transitionBlock.className = "big-message";
+          transitionBlock.textContent = "MISSION ACCOMPLISHED!";
+          storyContainer.appendChild(transitionBlock);
+          const nextBlock = document.createElement("div");
+          nextBlock.className = "next-mission";
+          nextBlock.textContent = "NEXT MISSION:";
+          storyContainer.appendChild(nextBlock);
+          await new Promise(r => setTimeout(r, 2000));
+          await fadeOut(storyContainer);
+          fadeIn(storyContainer);
+          currentMissionIndex++;
+          storyContainer.innerHTML = "";
+        } else {
+          const endBlock = document.createElement("div");
+          endBlock.className = "big-message";
+          endBlock.textContent = "ALL MISSIONS COMPLETED!";
+          storyContainer.appendChild(endBlock);
+          break;
+        }
+      }
+    }
+
+    /********* START ADVENTURE *********/
+    async function startAdventure(characterDetails) {
+      inputSection.classList.add("hidden");
+      gameSection.classList.remove("hidden");
+      storyContainer.innerHTML = "";
+      missionHeader.innerHTML = "";
+      storyContainer.scrollTop = storyContainer.scrollHeight;
+      const characterData = await generatecharacterData(characterDetails);
+      if(characterData) {
+        displayInitialStats(characterData.needs);
+        missionsData = characterData.missions;
+        await startMissions(missionsData);
+      } else {
+        storyContainer.innerHTML = "Failed to generate virtual character adventure data. Check console for errors.\n";
+      }
+    }
+
+    /********* EVENT LISTENERS FOR FORMS *********/
+    document.getElementById("start-custom").addEventListener("click", async () => {
+      const characterType = document.getElementById("characterType").value.trim() || "Mystic Character";
+      const characterTraits = document.getElementById("characterTraits").value.trim() || "brave, curious";
+      const characterLikes = document.getElementById("characterLikes").value.trim() || "adventure, puzzles";
+      const characterDislikes = document.getElementById("characterDislikes").value.trim() || "monotony, chaos";
+      startAdventure({ mode: "custom", characterType, characterTraits, characterLikes, characterDislikes });
+    });
+    document.getElementById("start-sentence").addEventListener("click", async () => {
+      const sentence = document.getElementById("characterSentence").value.trim() || "A daring character that loves epic battles and mysterious quests.";
+      startAdventure({ mode: "sentence", sentence });
+    });
+    document.getElementById("start-random").addEventListener("click", async () => {
+      startAdventure({ mode: "random" });
+    });
+  </script>
+</body>
+</html>

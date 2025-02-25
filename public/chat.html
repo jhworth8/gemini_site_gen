@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gemini Web Chat</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background-color: #f4f7f6;
+      color: #333;
+    }
+    #conversation {
+      width: 80%;
+      max-width: 600px;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      background-color: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      height: 400px;
+    }
+    .user-message, .gemini-message {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      word-wrap: break-word;
+    }
+    .user-message {
+      background-color: #e2f0cb;
+      align-self: flex-start;
+    }
+    .gemini-message {
+      background-color: #cce5ff;
+      align-self: flex-end;
+    }
+    .live-message {
+      opacity: 0.7;
+      font-style: italic;
+    }
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .buttons button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .buttons button:hover {
+      background-color: #0056b3;
+    }
+    .buttons button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    .status {
+      margin-top: 10px;
+      font-style: italic;
+      color: #777;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .user-message, .gemini-message, .live-message {
+      animation: fadeIn 0.5s ease-in-out forwards;
+    }
+    #voice-selector {
+      margin: 10px 0;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "@google/generative-ai": "https://esm.run/@google/generative-ai"
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Gemini Web Chat</h1>
+  <div id="conversation">
+    <div class="gemini-message">Hello! I'm listening. Please speak to start our conversation.</div>
+  </div>
+  <div class="buttons">
+    <button id="startButton">Start Conversation</button>
+    <button id="pauseButton" disabled>Pause Conversation</button>
+    <button id="resetButton">Reset Conversation</button>
+  </div>
+  <select id="voice-selector">
+    <option value="">Loading voices...</option>
+  </select>
+  <div id="status" class="status">Click 'Start Conversation' to begin</div>
+
+  <script type="module">
+    import { GoogleGenerativeAI } from "@google/generative-ai";
+
+    const API_KEY = "AIzaSyAZUKcc90MfN2dGneHLoRljaVcUdJM6O6Q"; // Replace with your actual API key
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+    const conversationDiv = document.getElementById('conversation');
+    const startButton = document.getElementById('startButton');
+    const pauseButton = document.getElementById('pauseButton');
+    const resetButton = document.getElementById('resetButton');
+    const statusDiv = document.getElementById('status');
+    const voiceSelector = document.getElementById('voice-selector');
+
+    let recognition;
+    let isConversationActive = false;
+    let ttsActive = false; // flag to indicate if TTS is in progress
+
+    // Initialize Gemini chat session
+    let currentChat = model.startChat({
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 800,
+      }
+    });
+
+    // Setup speech recognition if supported
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = true; // continuous listening
+      recognition.interimResults = true; // show live interim results
+      recognition.lang = 'en-US';
+    } else {
+      statusDiv.textContent = "Speech recognition is not supported in this browser.";
+      startButton.disabled = true;
+    }
+
+    // Button event listeners
+    startButton.addEventListener('click', startConversation);
+    pauseButton.addEventListener('click', pauseConversation);
+    resetButton.addEventListener('click', resetConversation);
+
+    // Populate voice list for TTS
+    function populateVoiceList() {
+      if (typeof speechSynthesis === 'undefined') return;
+      const voices = speechSynthesis.getVoices();
+      voiceSelector.innerHTML = '';
+
+      const englishVoices = voices.filter(voice =>
+        voice.lang.includes('en') &&
+        !voice.name.includes('Deutsch') &&
+        !voice.name.includes('German')
+      );
+
+      englishVoices.sort((a, b) => {
+        if (a.lang === 'en-US' && b.lang !== 'en-US') return -1;
+        if (a.lang !== 'en-US' && b.lang === 'en-US') return 1;
+        if (a.lang === 'en-GB' && b.lang !== 'en-GB') return -1;
+        if (a.lang !== 'en-GB' && b.lang === 'en-GB') return 1;
+        return a.name.localeCompare(b.name);
+      });
+
+      englishVoices.forEach(voice => {
+        const option = document.createElement('option');
+        option.value = voice.name;
+        option.textContent = `${voice.name} (${voice.lang})`;
+        if (voice.name.includes('Samantha') ||
+            voice.name.includes('Google US English') ||
+            voice.name.includes('Microsoft Zira')) {
+          option.selected = true;
+        }
+        voiceSelector.appendChild(option);
+      });
+
+      if (englishVoices.length === 0) {
+        voices.forEach(voice => {
+          const option = document.createElement('option');
+          option.value = voice.name;
+          option.textContent = `${voice.name} (${voice.lang})`;
+          voiceSelector.appendChild(option);
+        });
+      }
+
+      const autoOption = document.createElement('option');
+      autoOption.value = "";
+      autoOption.textContent = "Auto-select best English voice";
+      voiceSelector.insertBefore(autoOption, voiceSelector.firstChild);
+      autoOption.selected = true;
+    }
+
+    // Create or update the live transcript element
+    function updateLiveTranscript(text) {
+      let liveEl = document.getElementById("live-transcript");
+      if (!liveEl) {
+        liveEl = document.createElement("div");
+        liveEl.id = "live-transcript";
+        liveEl.className = "user-message live-message";
+        conversationDiv.appendChild(liveEl);
+      }
+      liveEl.textContent = text;
+      conversationDiv.scrollTop = conversationDiv.scrollHeight;
+    }
+
+    // Clear the live transcript element
+    function clearLiveTranscript() {
+      const liveEl = document.getElementById("live-transcript");
+      if (liveEl) {
+        conversationDiv.removeChild(liveEl);
+      }
+    }
+
+    // Speech recognition event handlers
+    recognition.onstart = () => {
+      statusDiv.textContent = "Listening...";
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      if (event.error === 'no-speech') {
+        statusDiv.textContent = "No speech detected. Continuing to listen...";
+      } else {
+        statusDiv.textContent = 'Error: ' + event.error;
+        pauseConversation();
+      }
+    };
+
+    recognition.onresult = (event) => {
+      let interimTranscript = "";
+      let finalTranscript = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      // Show live transcript as you speak
+      if (interimTranscript) {
+        updateLiveTranscript(interimTranscript);
+      }
+      // Once a final result comes in, finalize it
+      if (finalTranscript.trim()) {
+        clearLiveTranscript();
+        addUserMessage(finalTranscript);
+        statusDiv.textContent = "Generating response...";
+        getGeminiResponse(finalTranscript);
+      }
+    };
+
+    // In onend, restart recognition only if not in the middle of TTS
+    recognition.onend = () => {
+      if (isConversationActive && !ttsActive) {
+        setTimeout(() => {
+          try {
+            recognition.start();
+          } catch (error) {
+            console.error("Error restarting recognition:", error);
+          }
+        }, 500);
+      }
+    };
+
+    // Conversation control functions
+    function startConversation() {
+      if (!recognition) return;
+      isConversationActive = true;
+      startButton.disabled = true;
+      pauseButton.disabled = false;
+      try {
+        recognition.start();
+      } catch (error) {
+        console.error("Error starting recognition:", error);
+      }
+    }
+
+    function pauseConversation() {
+      isConversationActive = false;
+      try {
+        recognition.stop();
+      } catch (e) {
+        console.error(e);
+      }
+      speechSynthesis.cancel();
+      startButton.disabled = false;
+      pauseButton.disabled = true;
+      statusDiv.textContent = "Conversation paused.";
+    }
+
+    function resetConversation() {
+      pauseConversation();
+      while (conversationDiv.firstChild) {
+        conversationDiv.removeChild(conversationDiv.firstChild);
+      }
+      const welcomeMessage = document.createElement('div');
+      welcomeMessage.className = 'gemini-message';
+      welcomeMessage.textContent = "Hello! I'm listening. Please speak to start our conversation.";
+      conversationDiv.appendChild(welcomeMessage);
+      currentChat = model.startChat({
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 800,
+        }
+      });
+      statusDiv.textContent = "Conversation reset. Click 'Start Conversation' to begin.";
+    }
+
+    // Message display functions
+    function addUserMessage(text) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'user-message';
+      messageDiv.textContent = text;
+      conversationDiv.appendChild(messageDiv);
+      conversationDiv.scrollTop = conversationDiv.scrollHeight;
+    }
+
+    function addGeminiMessage(text) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'gemini-message';
+      messageDiv.textContent = text;
+      conversationDiv.appendChild(messageDiv);
+      conversationDiv.scrollTop = conversationDiv.scrollHeight;
+      if (isConversationActive) {
+        speakResponse(text);
+      }
+    }
+
+    async function getGeminiResponse(userText) {
+      try {
+        const result = await currentChat.sendMessage(userText);
+        const response = result.response;
+        const textResponse = response.text();
+        if (textResponse) {
+          addGeminiMessage(textResponse);
+        } else {
+          statusDiv.textContent = "Gemini returned an empty response.";
+        }
+      } catch (error) {
+        console.error("Gemini API error:", error);
+        addGeminiMessage("Sorry, I encountered an error generating a response. Let's try again.");
+      }
+    }
+
+    function speakResponse(text) {
+      if ('speechSynthesis' in window) {
+        // Stop recognition while speaking
+        try {
+          recognition.stop();
+        } catch (e) {
+          console.error(e);
+        }
+        ttsActive = true;
+        speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        const voices = speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          const selectedVoiceName = voiceSelector.value;
+          if (selectedVoiceName) {
+            const selectedVoice = voices.find(voice => voice.name === selectedVoiceName);
+            if (selectedVoice) {
+              utterance.voice = selectedVoice;
+            }
+          } else {
+            const preferredVoice = voices.find(voice =>
+              (voice.name.includes('Samantha') ||
+               voice.name.includes('Google US English Female') ||
+               voice.name.includes('Microsoft Zira'))
+            ) || voices.find(voice =>
+              voice.lang === 'en-US' &&
+              !voice.name.includes('Deutsch') &&
+              !voice.name.includes('German')
+            ) || voices.find(voice =>
+              voice.lang.includes('en-') &&
+              !voice.name.includes('Deutsch') &&
+              !voice.name.includes('German')
+            );
+            if (preferredVoice) {
+              utterance.voice = preferredVoice;
+            }
+          }
+        }
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        utterance.onend = () => {
+          ttsActive = false;
+          statusDiv.textContent = "Ready for your response...";
+          if (isConversationActive) {
+            try {
+              recognition.start();
+            } catch (error) {
+              console.error("Error restarting recognition after TTS:", error);
+            }
+          }
+        };
+        speechSynthesis.speak(utterance);
+        statusDiv.textContent = "Speaking...";
+      } else {
+        // If TTS not supported, resume listening immediately
+        if (isConversationActive) {
+          try {
+            recognition.start();
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      }
+    }
+
+    if (typeof speechSynthesis !== 'undefined') {
+      speechSynthesis.onvoiceschanged = populateVoiceList;
+      populateVoiceList();
+    }
+
+    window.onload = () => {
+      populateVoiceList();
+    };
+  </script>
+</body>
+</html>

@@ -29,6 +29,7 @@
       display: flex;
       flex-direction: column;
       position: relative;
+      z-index: 1;
     }
     header {
       background: #444;
@@ -221,35 +222,99 @@
       color: #b2ff59;
       margin-top: 10px;
     }
-    /* Spinner */
-    .spinner {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 1.2rem;
-      color: #f0a500;
-      z-index: 1000;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .spinner:after {
-      content: "";
-      display: block;
-      width: 40px;
-      height: 40px;
-      margin: 10px auto;
-      border-radius: 50%;
-      border: 4px solid #f0a500;
-      border-color: #f0a500 transparent #f0a500 transparent;
-      animation: spin 1.2s linear infinite;
-    }
     footer {
       background: #444;
       text-align: center;
       padding: 10px;
+    }
+    
+    /* -----------------------------
+       Loading Screen Styles
+       ----------------------------- */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(249,244,255,0.95);
+      overflow: hidden;
+      z-index: 3000;
+      cursor: none;
+      opacity: 1;
+      transition: opacity 1s;
+    }
+    .loading-screen.hidden {
+      display: none;
+    }
+    .loading-screen.fade-out {
+      opacity: 0;
+    }
+    .loading-screen .cursor {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,192,203,0.8) 0%, rgba(255,192,203,0.2) 70%, rgba(255,192,203,0) 100%);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 9999;
+    }
+    .loading-screen .emoji {
+      position: absolute;
+      font-size: 24px;
+      user-select: none;
+      transition: opacity 0.5s ease;
+    }
+    .loading-screen .loading-text {
+      position: fixed;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.5rem;
+      color: #ff85a2;
+      text-shadow: 2px 2px 0px #fff;
+      z-index: 100;
+      width: 100%;
+      text-align: center;
+    }
+    /* Dad Joke Element */
+    .loading-screen .dad-joke {
+      position: fixed;
+      top: 55%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.5rem;
+      color: #ff85a2;
+      text-shadow: 1px 1px 0px #fff;
+      z-index: 100;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+      width: 80%;
+      text-align: center;
+    }
+    .loading-screen .loading-dots {
+      display: inline-block;
+      overflow: hidden;
+      height: 1.2em;
+      line-height: 1.2em;
+      vertical-align: bottom;
+    }
+    .loading-screen .loading-dots-dot {
+      display: inline-block;
+      opacity: 0;
+      animation: dot-fade 1.4s infinite;
+      animation-fill-mode: forwards;
+    }
+    .loading-screen .loading-dots-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .loading-screen .loading-dots-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    @keyframes dot-fade {
+      0%, 60%, 100% { opacity: 0; transform: translateY(5px); }
+      10%, 50% { opacity: 1; transform: translateY(0); }
     }
   </style>
   <script type="importmap">
@@ -312,14 +377,27 @@
       <p>Adventure Virtual Character powered by Gemini API</p>
     </footer>
   </div>
-  <div id="spinner" class="spinner hidden"></div>
+
+  <!-- Loading Screen (appears during generation) -->
+  <div id="loading-screen" class="loading-screen hidden">
+    <div class="cursor"></div>
+    <div class="loading-text">
+      Loading<span class="loading-dots">
+        <span class="loading-dots-dot">.</span>
+        <span class="loading-dots-dot">.</span>
+        <span class="loading-dots-dot">.</span>
+      </span>
+    </div>
+    <div class="dad-joke">Why don't skeletons fight each other? They don't have the guts.</div>
+  </div>
   
   <script type="module">
     import { GoogleGenerativeAI } from "@google/generative-ai";
 
     /********* CONFIG & DOM REFERENCES *********/
     const API_KEY = "AIzaSyAZUKcc90MfN2dGneHLoRljaVcUdJM6O6Q"; // Replace with your API key
-    const spinnerDiv = document.getElementById("spinner");
+
+    // Game DOM elements
     const gameSection = document.getElementById("game-section");
     const inputSection = document.getElementById("input-section");
     const storyContainer = document.getElementById("story-container");
@@ -338,6 +416,10 @@
     const formCustom = document.getElementById("form-custom");
     const formSentence = document.getElementById("form-sentence");
     const formRandom = document.getElementById("form-random");
+
+    // Loading Screen element (replacing the simple spinner)
+    const loadingScreen = document.getElementById("loading-screen");
+    const dadJokeEl = loadingScreen.querySelector('.dad-joke');
 
     let missionsData = [];
     let characterNeeds = { hunger: 0, happiness: 0, energy: 0, health: 0 };
@@ -369,9 +451,22 @@
       formRandom.classList.remove("hidden");
     });
 
+    /********* LOADING SCREEN FUNCTIONS *********/
+    function showSpinner() {
+      // Remove hidden class to show the loading screen and reset opacity.
+      loadingScreen.classList.remove("hidden");
+      loadingScreen.classList.remove("fade-out");
+    }
+    function hideSpinner() {
+      // Add fade-out class then after transition hide the element.
+      loadingScreen.classList.add("fade-out");
+      setTimeout(() => {
+        loadingScreen.classList.add("hidden");
+        loadingScreen.classList.remove("fade-out");
+      }, 1000);
+    }
+
     /********* SPINNER & JSON EXTRACTION *********/
-    function showSpinner() { spinnerDiv.classList.remove("hidden"); }
-    function hideSpinner() { spinnerDiv.classList.add("hidden"); }
     function extractJsonFoolproof(responseText) {
       const startMarker = "-JSON START-";
       const endMarker = "-JSON END-";
@@ -823,6 +918,142 @@ ${frameworkSchema}
     document.getElementById("start-random").addEventListener("click", async () => {
       startAdventure({ mode: "random" });
     });
+
+    /********* LOADING SCREEN ANIMATION CODE *********/
+    // Use the loading-screen element as the container for our emoji animations.
+    const emojiList = [
+      '🐱', '🐶', '🐰', '🐼', '🦊', '🐻', '🐨', '🐯', '🦁', '🐮', 
+      '🐷', '🐸', '🐙', '🦄', '🦕', '🐢', '🐬', '🦔', '🦦', '🦥',
+      '🍓', '🍰', '🧁', '🍭', '🍬', '🥐', '🍩', '🍪', '🍄', '⭐',
+      '💖', '🌈', '☁️', '🌟', '✨', '🌸', '🌼', '🌻', '🌱', '🍀'
+    ];
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    const lsCursor = loadingScreen.querySelector('.cursor');
+    let emojiElements = [];
+    const emojiCount = 100;
+
+    // Update cursor position inside the loading screen.
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      lsCursor.style.left = mouseX + 'px';
+      lsCursor.style.top = mouseY + 'px';
+    });
+
+    function createEmoji() {
+      const emojiEl = document.createElement('div');
+      emojiEl.className = 'emoji';
+      emojiEl.textContent = emojiList[Math.floor(Math.random() * emojiList.length)];
+
+      // Random position
+      emojiEl.x = Math.random() * window.innerWidth;
+      emojiEl.y = Math.random() * window.innerHeight;
+      // Random velocity
+      emojiEl.vx = (Math.random() - 0.5) * 2;
+      emojiEl.vy = (Math.random() - 0.5) * 2;
+      // Random rotation
+      emojiEl.rotation = Math.random() * 360;
+      emojiEl.style.transform = `rotate(${emojiEl.rotation}deg)`;
+      // Random opacity and scale
+      const opacity = 0.3 + Math.random() * 0.7;
+      emojiEl.style.opacity = opacity;
+      const scale = 0.5 + Math.random() * 1.5;
+      emojiEl.style.fontSize = `${scale * 24}px`;
+
+      loadingScreen.appendChild(emojiEl);
+      emojiElements.push(emojiEl);
+      updateEmojiPosition(emojiEl);
+    }
+
+    function updateEmojiPosition(emojiEl) {
+      emojiEl.style.left = emojiEl.x + 'px';
+      emojiEl.style.top = emojiEl.y + 'px';
+    }
+
+    // Create multiple emojis
+    for (let i = 0; i < emojiCount; i++) {
+      createEmoji();
+    }
+
+    function animateEmojis() {
+      emojiElements.forEach(emojiEl => {
+        const dx = mouseX - emojiEl.x;
+        const dy = mouseY - emojiEl.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        // Gravity effect: pull emojis toward the cursor
+        const gravityStrength = 0.5;
+        const gravity = Math.min(gravityStrength, gravityStrength * 1000 / (distance * distance));
+        if (distance > 20) {
+          emojiEl.vx += (dx / distance) * gravity;
+          emojiEl.vy += (dy / distance) * gravity;
+        }
+        // Apply friction
+        emojiEl.vx *= 0.98;
+        emojiEl.vy *= 0.98;
+        // Update position
+        emojiEl.x += emojiEl.vx;
+        emojiEl.y += emojiEl.vy;
+        // Rotate emoji
+        emojiEl.rotation += (Math.random() - 0.5) * 4;
+        // Wrap around screen edges
+        if (emojiEl.x < -50) emojiEl.x = window.innerWidth + 50;
+        if (emojiEl.x > window.innerWidth + 50) emojiEl.x = -50;
+        if (emojiEl.y < -50) emojiEl.y = window.innerHeight + 50;
+        if (emojiEl.y > window.innerHeight + 50) emojiEl.y = -50;
+        // Update DOM styles
+        emojiEl.style.left = emojiEl.x + 'px';
+        emojiEl.style.top = emojiEl.y + 'px';
+        emojiEl.style.transform = `rotate(${emojiEl.rotation}deg)`;
+        // Adjust opacity based on distance to cursor
+        const maxDistance = 300;
+        const opacityFactor = Math.max(0.2, Math.min(1, 1 - (distance / maxDistance)));
+        emojiEl.style.opacity = 0.3 + (opacityFactor * 0.7);
+      });
+      requestAnimationFrame(animateEmojis);
+    }
+    animateEmojis();
+
+    window.addEventListener('resize', () => {
+      emojiElements.forEach(emojiEl => {
+        emojiEl.x = Math.min(window.innerWidth, emojiEl.x);
+        emojiEl.y = Math.min(window.innerHeight, emojiEl.y);
+        updateEmojiPosition(emojiEl);
+      });
+    });
+
+    /********* DAD JOKE ROTATOR *********/
+    const dadJokes = [
+    "Why don't skeletons fight each other? They don't have the guts.",
+    "I'm reading a book on anti-gravity. It's impossible to put down.",
+    "Did you hear about the restaurant on the moon? Great food, no atmosphere.",
+    "I would tell you a construction joke, but I'm still working on it.",
+    "Why did the scarecrow win an award? Because he was outstanding in his field.",
+    "I used to hate facial hair, but then it grew on me.",
+    "What do you call fake spaghetti? An impasta.",
+    "What do you call a fish with no eyes? Fsh.",
+    "How do you organize a space party? You planet.",
+    "What do you call a lazy kangaroo? A pouch potato.",
+    "Why don't scientists trust atoms? Because they make up everything!",
+    "What did the janitor say when he jumped out of the closet? Supplies!",
+    "Why did the bicycle fall over? Because it was two tired!",
+    "Want to hear a joke about paper? Never mind, it's tearable.",
+    "What do you call a bear with no teeth? A gummy bear."
+];
+    let currentJokeIndex = 0;
+    function rotateDadJoke() {
+      // Fade out current joke
+      dadJokeEl.style.opacity = 0;
+      setTimeout(() => {
+        // Update joke text
+        currentJokeIndex = (currentJokeIndex + 1) % dadJokes.length;
+        dadJokeEl.textContent = dadJokes[currentJokeIndex];
+        // Fade in new joke
+        dadJokeEl.style.opacity = 1;
+      }, 500); // 0.5 sec fade duration
+    }
+    // Start joke rotation every 5 seconds
+    setInterval(rotateDadJoke, 5000);
   </script>
 </body>
 </html>
